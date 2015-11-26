@@ -1,0 +1,40 @@
+{
+  "name": "restbase-mod-queue-kafka",
+  "version": "0.1.0",
+  "description": "RESTBase queuing module for Apache Kafka",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wikimedia/restbase-mod-queue-kafka.git"
+  },
+  "keywords": [
+    "REST",
+    "API",
+    "RESTBase",
+    "Kafka",
+    "Queuing",
+    "EventBus"
+  ],
+  "author": "Wikimedia Services Team <services@wikimedia.org>",
+  "contributors": [],
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://phabricator.wikimedia.org/tag/services/"
+  },
+  "homepage": "https://github.com/wikimedia/restbase-mod-queue-kafka",
+  "dependencies": {
+    "bluebird": "~2.8.2",
+    "cassandra-uuid": "^0.0.2",
+    "core-js": "^1.2.6",
+    "js-yaml": "^3.4.6",
+    "kafka-node": "^0.2.29",
+    "preq": "^0.4.7"
+  },
+  "devDependencies": {
+    "extend": "^3.0.0",
+    "istanbul": "^0.4.1",
+    "mocha": "^2.3.4",
+    "mocha-jshint": "^2.2.5",
+    "mocha-lcov-reporter": "^1.0.0",
+    "swagger-router": "^0.3.1"
+  }
+}

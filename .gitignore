@@ -1,0 +1,5 @@
+Dockerfile
+coverage
+node_modules
+npm-debug.log
+*~
