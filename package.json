@@ -7,6 +7,10 @@
     "type": "git",
     "url": "git://github.com/wikimedia/restbase-mod-queue-kafka.git"
   },
+  "scripts": {
+    "test": "mocha",
+    "coverage": "istanbul cover _mocha -- -R spec"
+  },
   "keywords": [
     "REST",
     "API",
@@ -35,6 +39,7 @@
     "extend": "^3.0.0",
     "istanbul": "^0.4.1",
     "mocha": "^2.3.4",
+    "mocha-jscs": "^4.0.0",
     "mocha-jshint": "^2.2.5",
     "mocha-lcov-reporter": "^1.0.0"
   }

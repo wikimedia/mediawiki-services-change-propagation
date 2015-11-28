@@ -71,7 +71,7 @@ Kafka.prototype._init = function() {
     Object.keys(this.conf.rules).map(function(name) {
         this._processRule(name, this.conf.rules[name]);
     }, this).forEach(function(rule) {
-        if (!rule) { return; };
+        if (!rule) { return; }
         this.conf.topics[rule.topic] = this.conf.topics[rule.topic] || {};
         this.conf.topics[rule.topic][rule.name] = rule.exec;
     }, this);
