@@ -9,6 +9,7 @@
 var P = require('bluebird');
 var kafka = P.promisifyAll(require('kafka-node'));
 var uuid = require('cassandra-uuid');
+var Template = require('swagger-router').Template;
 
 
 function Kafka(options, rules) {
@@ -20,8 +21,8 @@ function Kafka(options, rules) {
         clientId: options.client_id || 'change-propagation',
         rules: rules || {}
     };
-    this.topics = {};
     this.conf.connString = this.conf.host + ':' + this.conf.port;
+    this.rules = {};
 
     // init the rules
     this._init();
@@ -33,6 +34,7 @@ Kafka.prototype._processRule = function(ruleName, ruleSpec) {
 
     var idx;
     var reqs;
+    var templates = [];
 
     // validate the rule spec
     if (!ruleSpec.topic) {
@@ -55,12 +57,12 @@ Kafka.prototype._processRule = function(ruleName, ruleSpec) {
         }
         req.method = req.method || 'get';
         req.headers = req.headers || {};
+        templates.push(new Template(req));
     }
 
     return {
-        name: ruleName,
         topic: ruleSpec.topic,
-        exec: ruleSpec.exec
+        exec: templates
     };
 
 };
@@ -68,12 +70,10 @@ Kafka.prototype._processRule = function(ruleName, ruleSpec) {
 
 Kafka.prototype._init = function() {
 
-    Object.keys(this.conf.rules).map(function(name) {
-        return this._processRule(name, this.conf.rules[name]);
-    }, this).forEach(function(rule) {
+    Object.keys(this.conf.rules).forEach(function(name) {
+        var rule = this._processRule(name, this.conf.rules[name]);
         if (!rule) { return; }
-        this.topics[rule.topic] = this.topics[rule.topic] || {};
-        this.topics[rule.topic][rule.name] = rule.exec;
+        this.rules[name] = rule;
     }, this);
 
 };
@@ -84,26 +84,28 @@ Kafka.prototype.setup = function() {
     var self = this;
 
     self.conn = {};
-    var p = Object.keys(self.topics).map(function(topic) {
-        self.conn[topic] = {};
-        self.conn[topic].client = new kafka.Client(
+    var p = Object.keys(self.rules).map(function(rule) {
+        var ruleDef = self.rules[rule];
+        self.conn[rule] = {};
+        self.conn[rule].client = new kafka.Client(
             self.conf.connString,
             self.conf.clientId + '-' + uuid.TimeUuid.now() + '-' + uuid.Uuid.random(),
             {}
         );
-        self.conn[topic].consumer = new kafka.HighLevelConsumer(
-            self.conn[topic].client,
-            [{ topic: topic }],
-            { groupId: 'change-prop-' + topic }
+        self.conn[rule].consumer = new kafka.HighLevelConsumer(
+            self.conn[rule].client,
+            [{ topic: ruleDef.topic }],
+            { groupId: 'change-prop-' + rule }
         );
-        self.conn[topic].consumer.on('message', function(message) {
+        self.conn[rule].consumer.on('message', function(message) {
             self.log('debug/kafka/message',
                 { msg: 'Event received', event: JSON.parse(message.value) }
             );
         });
         return new P(function(resolve) {
-            self.conn[topic].consumer.on('rebalanced', function() {
-                self.log('debug/kafka/topic', 'Listening to topic ' + topic);
+            self.conn[rule].consumer.on('rebalanced', function() {
+                self.log('debug/kafka/topic', 'Listening to topic ' + ruleDef.topic
+                    + ' for rule ' + rule);
                 resolve();
             });
         });
