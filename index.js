@@ -10,16 +10,17 @@ var P = require('bluebird');
 var kafka = P.promisifyAll(require('kafka-node'));
 var uuid = require('cassandra-uuid');
 var Template = require('swagger-router').Template;
+var preq = require('preq');
 
 
-function Kafka(options, rules) {
+function Kafka(options) {
 
     this.log = options.log || function() {};
     this.conf = {
         host: options.host || 'localhost',
         port: options.port || 2181,
         clientId: options.client_id || 'change-propagation',
-        rules: rules || {}
+        rules: options.templates || {}
     };
     this.conf.connString = this.conf.host + ':' + this.conf.port;
     this.rules = {};
@@ -118,9 +119,9 @@ Kafka.prototype.setup = function() {
 };
 
 
-module.exports = function(options, rules) {
+module.exports = function(options) {
 
-    var kafkaMod = new Kafka(options, rules);
+    var kafkaMod = new Kafka(options);
 
     return kafkaMod.setup().then(function() {
         return {
