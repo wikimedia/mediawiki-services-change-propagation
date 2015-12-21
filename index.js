@@ -99,9 +99,18 @@ Kafka.prototype.setup = function() {
             { groupId: 'change-prop-' + rule }
         );
         self.conn[rule].consumer.on('message', function(message) {
+            var event = JSON.parse(message.value);
             self.log('debug/kafka/message',
-                { msg: 'Event received', event: JSON.parse(message.value) }
+                { msg: 'Event received', event: event }
             );
+            return P.each(ruleDef.exec, P.method(function(tpl) {
+                return preq(tpl.expand({message: event}));
+            })).catch(function(err) {
+                self.log('info/change-prop', err);
+            });
+        });
+        self.conn[rule].consumer.on('error', function(err) {
+            self.log('warn/kafka/error', {err: err});
         });
         return new P(function(resolve) {
             self.conn[rule].consumer.on('rebalanced', function() {
