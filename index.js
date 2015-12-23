@@ -87,6 +87,7 @@ Kafka.prototype.setup = function() {
     self.conn = {};
     var p = Object.keys(self.rules).map(function(rule) {
         var ruleDef = self.rules[rule];
+        var logRule = { name: rule, topic: ruleDef.topic };
         self.conn[rule] = {};
         self.conn[rule].client = new kafka.Client(
             self.conf.connString,
@@ -101,21 +102,27 @@ Kafka.prototype.setup = function() {
         self.conn[rule].consumer.on('message', function(message) {
             var event = JSON.parse(message.value);
             self.log('debug/kafka/message',
-                { msg: 'Event received', event: event }
+                { msg: 'Event received', event: event, rule: logRule }
             );
             return P.each(ruleDef.exec, P.method(function(tpl) {
-                return preq(tpl.expand({message: event}));
+                return preq(tpl.expand({ message: event }));
             })).catch(function(err) {
                 self.log('info/change-prop', err);
             });
         });
+        self.conn[rule].consumer.on('topics_changed', function(topicList) {
+            // only one topic can be subscribed to by this client
+            if (topicList && topicList.length) {
+                self.log('info/change-prop/subscription', { rule: logRule, msg: 'Listening to ' + topicList[0] });
+            } else {
+                self.log('info/change-prop/subscription', { rule: logRule, msg: 'Lost ownership of ' + ruleDef.topic });
+            }
+        });
         self.conn[rule].consumer.on('error', function(err) {
-            self.log('warn/kafka/error', {err: err});
+            self.log('warn/kafka/error', { err: err, rule: logRule });
         });
         return new P(function(resolve) {
             self.conn[rule].consumer.on('rebalanced', function() {
-                self.log('debug/kafka/topic', 'Listening to topic ' + ruleDef.topic
-                    + ' for rule ' + rule);
                 resolve();
             });
         });
