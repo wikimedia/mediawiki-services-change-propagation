@@ -30,8 +30,8 @@
     "bluebird": "^3.2.2",
     "cassandra-uuid": "^0.0.2",
     "hyperswitch": "^0.1.2",
-    "kafka-node": "git+https://github.com/d00rman/kafka-node#master",
-    "service-runner": "^1.1.4"
+    "service-runner": "^1.1.4",
+    "wmf-kafka-node": "^0.1.0"
   },
   "devDependencies": {
     "extend": "^3.0.0",

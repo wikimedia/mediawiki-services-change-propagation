@@ -7,7 +7,7 @@
 
 
 var P = require('bluebird');
-var kafka = P.promisifyAll(require('kafka-node'));
+var kafka = P.promisifyAll(require('wmf-kafka-node'));
 var uuid = require('cassandra-uuid');
 var HyperSwitch = require('hyperswitch');
 var Template = HyperSwitch.Template;
