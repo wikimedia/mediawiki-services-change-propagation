@@ -1,39 +1,37 @@
 {
-  "name": "restbase-mod-queue-kafka",
+  "name": "change-propagation",
   "version": "0.1.0",
   "description": "RESTBase queuing module for Apache Kafka",
-  "main": "index.js",
+  "main": "server.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/wikimedia/restbase-mod-queue-kafka.git"
+    "url": "git://github.com/wikimedia/change-propagation.git"
   },
   "scripts": {
+    "start": "service-runner",
     "test": "mocha",
     "coverage": "istanbul cover _mocha -- -R spec"
   },
   "keywords": [
     "REST",
     "API",
-    "RESTBase",
     "Kafka",
-    "Queuing",
+    "queuing",
     "EventBus"
   ],
-  "author": "Wikimedia Services Team <services@wikimedia.org>",
+  "author": "Wikimedia Services Team <services@lists.wikimedia.org>",
   "contributors": [],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://phabricator.wikimedia.org/tag/services/"
   },
-  "homepage": "https://github.com/wikimedia/restbase-mod-queue-kafka",
+  "homepage": "https://github.com/wikimedia/change-propagation",
   "dependencies": {
-    "bluebird": "~2.8.2",
+    "bluebird": "^3.2.2",
     "cassandra-uuid": "^0.0.2",
-    "core-js": "^1.2.6",
-    "js-yaml": "^3.4.6",
+    "hyperswitch": "^0.1.2",
     "kafka-node": "git+https://github.com/d00rman/kafka-node#master",
-    "preq": "^0.4.7",
-    "swagger-router": "^0.3.1"
+    "service-runner": "^1.1.4"
   },
   "devDependencies": {
     "extend": "^3.0.0",

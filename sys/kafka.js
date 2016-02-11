@@ -9,8 +9,8 @@
 var P = require('bluebird');
 var kafka = P.promisifyAll(require('kafka-node'));
 var uuid = require('cassandra-uuid');
-var Template = require('swagger-router').Template;
-var preq = require('preq');
+var HyperSwitch = require('hyperswitch');
+var Template = HyperSwitch.Template;
 
 
 function Kafka(options) {
@@ -80,10 +80,11 @@ Kafka.prototype._init = function() {
 };
 
 
-Kafka.prototype.setup = function() {
+Kafka.prototype.setup = function(hyper, req) {
 
     var self = this;
 
+    self.hyper = hyper;
     self.conn = {};
     var p = Object.keys(self.rules).map(function(rule) {
         var ruleDef = self.rules[rule];
@@ -101,11 +102,11 @@ Kafka.prototype.setup = function() {
         );
         self.conn[rule].consumer.on('message', function(message) {
             var event = JSON.parse(message.value);
-            self.log('debug/kafka/message',
+            self.log('debug/change-prop/message',
                 { msg: 'Event received', event: event, rule: logRule }
             );
             return P.each(ruleDef.exec, P.method(function(tpl) {
-                return preq(tpl.expand({ message: event }));
+                return self.hyper.request(tpl.expand({ message: event }));
             })).catch(function(err) {
                 self.log('info/change-prop', err);
             });
@@ -119,7 +120,7 @@ Kafka.prototype.setup = function() {
             }
         });
         self.conn[rule].consumer.on('error', function(err) {
-            self.log('warn/kafka/error', { err: err, rule: logRule });
+            self.log('warn/change-prop/error', { err: err, rule: logRule });
         });
         return new P(function(resolve) {
             self.conn[rule].consumer.on('rebalanced', function() {
@@ -129,7 +130,8 @@ Kafka.prototype.setup = function() {
     });
 
     return P.all(p).then(function() {
-        self.log('info/kafka/init', 'Kafka Queue module initialised');
+        self.log('info/change-prop/init', 'Kafka Queue module initialised');
+        return { status: 200 };
     });
 
 };
@@ -139,16 +141,24 @@ module.exports = function(options) {
 
     var kafkaMod = new Kafka(options);
 
-    return kafkaMod.setup().then(function() {
-        return {
-            /* We currently don't expose anything to RESTBase, because only static
-            * rule definitions are supported. In future, this module will expose
-            * routes allowing for dynamic subscriptions.
-            */
-            spec: {},
-            operations: {}
-        };
-    });
+    return {
+        spec: {
+            paths: {
+                '/setup': {
+                    put: {
+                        summary: 'set up the kafka listener',
+                        operationId: 'setup_kafka'
+                    }
+                }
+            }
+        },
+        operations: {
+            setup_kafka: kafkaMod.setup.bind(kafkaMod)
+        },
+        resources: [{
+            uri: '/{domain}/sys/queue/setup'
+        }]
+    };
 
 };
 
