@@ -9,8 +9,7 @@
 var P = require('bluebird');
 var kafka = P.promisifyAll(require('wmf-kafka-node'));
 var uuid = require('cassandra-uuid');
-var HyperSwitch = require('hyperswitch');
-var Template = HyperSwitch.Template;
+var Rule = require('../lib/rule');
 
 
 function Kafka(options) {
@@ -31,51 +30,15 @@ function Kafka(options) {
 }
 
 
-Kafka.prototype._processRule = function(ruleName, ruleSpec) {
-
-    var idx;
-    var reqs;
-    var templates = [];
-
-    // validate the rule spec
-    if (!ruleSpec.topic) {
-        throw new Error('No topic specified for rule ' + ruleName);
-    }
-    if (!ruleSpec.exec) {
-        // nothing to do, ignore this rule
-        return undefined;
-    }
-    if (!Array.isArray(ruleSpec.exec)) {
-        ruleSpec.exec = [ruleSpec.exec];
-    }
-
-    reqs = ruleSpec.exec;
-    for (idx = 0; idx < reqs.length; idx++) {
-        var req = reqs[idx];
-        if (req.constructor !== Object || !req.uri) {
-            throw new Error('In rule ' + ruleName + ', request number ' + idx +
-                ' must be an object and must have the "uri" property');
-        }
-        req.method = req.method || 'get';
-        req.headers = req.headers || {};
-        templates.push(new Template(req));
-    }
-
-    return {
-        topic: ruleSpec.topic,
-        exec: templates
-    };
-
-};
-
-
 Kafka.prototype._init = function() {
 
+    var self = this;
+
     Object.keys(this.conf.rules).forEach(function(name) {
-        var rule = this._processRule(name, this.conf.rules[name]);
-        if (!rule) { return; }
-        this.rules[name] = rule;
-    }, this);
+        var rule = new Rule(name, self.conf.rules[name]);
+        if (rule.noop) { return; }
+        self.rules[name] = rule;
+    });
 
 };
 
