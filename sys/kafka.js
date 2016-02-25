@@ -43,6 +43,32 @@ Kafka.prototype._init = function() {
 };
 
 
+Kafka.prototype._execEvent = function(event, rule) {
+
+    var self = this;
+    var expander = {
+        message: event,
+        match: null
+    };
+
+    if (!rule.test(event)) {
+        // no match, drop the message
+        this.log('debug/' + rule.name, { msg: 'Dropping event message', event: event });
+        return;
+    }
+
+    this.log('trace/' + rule.name, { msg: 'Event message received', event: event });
+    expander.match = rule.expand(event);
+
+    return P.each(rule.exec, P.method(function(tpl) {
+        return self.hyper.request(tpl.expand(expander));
+    })).catch(function(err) {
+        self.log('info/' + rule.name, err);
+    });
+
+};
+
+
 Kafka.prototype.setup = function(hyper, req) {
 
     var self = this;
@@ -65,25 +91,20 @@ Kafka.prototype.setup = function(hyper, req) {
         );
         self.conn[rule].consumer.on('message', function(message) {
             var event = JSON.parse(message.value);
-            self.log('debug/change-prop/message',
-                { msg: 'Event received', event: event, rule: logRule }
-            );
-            return P.each(ruleDef.exec, P.method(function(tpl) {
-                return self.hyper.request(tpl.expand({ message: event }));
-            })).catch(function(err) {
-                self.log('info/change-prop', err);
-            });
+            return self._execEvent(event, ruleDef);
         });
         self.conn[rule].consumer.on('topics_changed', function(topicList) {
             // only one topic can be subscribed to by this client
             if (topicList && topicList.length) {
-                self.log('info/change-prop/subscription', { rule: logRule, msg: 'Listening to ' + topicList[0] });
+                self.log('info/' + rule + '/subscription',
+                    { rule: logRule, msg: 'Listening to ' + topicList[0] });
             } else {
-                self.log('info/change-prop/subscription', { rule: logRule, msg: 'Lost ownership of ' + ruleDef.topic });
+                self.log('info/' + rule + '/subscription',
+                    { rule: logRule, msg: 'Lost ownership of ' + ruleDef.topic });
             }
         });
         self.conn[rule].consumer.on('error', function(err) {
-            self.log('warn/change-prop/error', { err: err, rule: logRule });
+            self.log('warn/' + rule + '/error', { err: err, rule: logRule });
         });
         return new P(function(resolve) {
             self.conn[rule].consumer.on('rebalanced', function() {
