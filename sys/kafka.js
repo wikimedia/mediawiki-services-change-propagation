@@ -16,12 +16,10 @@ function Kafka(options) {
 
     this.log = options.log || function() {};
     this.conf = {
-        host: options.host || 'localhost',
-        port: options.port || 2181,
+        uri: options.uri || 'localhost:2181/',
         clientId: options.client_id || 'change-propagation',
         rules: options.templates || {}
     };
-    this.conf.connString = this.conf.host + ':' + this.conf.port;
     this.rules = {};
 
     // init the rules
@@ -80,7 +78,7 @@ Kafka.prototype.setup = function(hyper, req) {
         var logRule = { name: rule, topic: ruleDef.topic };
         self.conn[rule] = {};
         self.conn[rule].client = new kafka.Client(
-            self.conf.connString,
+            self.conf.uri,
             self.conf.clientId + '-' + uuid.TimeUuid.now() + '-' + uuid.Uuid.random(),
             {}
         );
