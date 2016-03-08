@@ -1,7 +1,7 @@
 {
   "name": "change-propagation",
-  "version": "0.1.0",
-  "description": "RESTBase queuing module for Apache Kafka",
+  "version": "0.1.1",
+  "description": "Listens to events from Kafka and delivers them",
   "main": "server.js",
   "repository": {
     "type": "git",
@@ -20,25 +20,27 @@
     "EventBus"
   ],
   "author": "Wikimedia Services Team <services@lists.wikimedia.org>",
-  "contributors": [],
+  "contributors": [
+    "Marko Obrovac <mobrovac@wikimedia.org>"
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://phabricator.wikimedia.org/tag/services/"
   },
   "homepage": "https://github.com/wikimedia/change-propagation",
   "dependencies": {
-    "bluebird": "^3.2.2",
+    "bluebird": "^3.3.4",
     "cassandra-uuid": "^0.0.2",
-    "hyperswitch": "^0.1.2",
-    "service-runner": "^1.1.4",
+    "hyperswitch": "^0.3.2",
+    "service-runner": "^1.1.7",
     "wmf-kafka-node": "^0.1.0"
   },
   "devDependencies": {
     "extend": "^3.0.0",
-    "istanbul": "^0.4.1",
-    "mocha": "^2.3.4",
-    "mocha-jscs": "^4.0.0",
-    "mocha-jshint": "^2.2.5",
-    "mocha-lcov-reporter": "^1.0.0"
+    "istanbul": "^0.4.2",
+    "mocha": "^2.4.5",
+    "mocha-jscs": "^4.2.0",
+    "mocha-jshint": "^2.3.1",
+    "mocha-lcov-reporter": "^1.2.0"
   }
 }
