@@ -9,8 +9,9 @@
   },
   "scripts": {
     "start": "service-runner",
-    "test": "sh test/utils/run_tests.sh test",
-    "coverage": "sh test/utils/run_tests.sh coverage",
+    "cleanup": "sh test/utils/clean_kafka.sh",
+    "test": "npm run cleanup && mocha",
+    "coverage": "npm run cleanup && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "keywords": [
