@@ -1,11 +1,18 @@
 language: node_js
+sudo: false
 
 node_js:
   - "4.3"
   - "5"
 
 env:
-  - CXX=g++-4.8
+  - KAFKA_HOME=../kafka CXX=g++-4.8
+
+before_install:
+- wget http://www.us.apache.org/dist/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz -O kafka.tgz
+- mkdir -p ${KAFKA_HOME} && tar xzf kafka.tgz -C ${KAFKA_HOME} --strip-components 1
+- echo 'delete.topic.enable=true' >> ${KAFKA_HOME}/config/server.properties
+- sh test/utils/start_kafka.sh start
 
 addons:
   apt:
@@ -14,5 +21,4 @@ addons:
     packages:
       - g++-4.8
 
-sudo: false
-
+script: npm run coverage && (npm run coveralls || exit 0)
