@@ -13,6 +13,7 @@ before_install:
 - mkdir -p ${KAFKA_HOME} && tar xzf kafka.tgz -C ${KAFKA_HOME} --strip-components 1
 - echo 'delete.topic.enable=true' >> ${KAFKA_HOME}/config/server.properties
 - nohup bash -c "cd ${KAFKA_HOME} && bin/zookeeper-server-start.sh config/zookeeper.properties &"
+- sleep 1
 - nohup bash -c "cd ${KAFKA_HOME} && bin/kafka-server-start.sh config/server.properties &"
 - sleep 5
 
