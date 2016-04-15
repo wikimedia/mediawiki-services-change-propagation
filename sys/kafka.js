@@ -6,47 +6,40 @@
  */
 
 
-var P = require('bluebird');
-var Rule = require('../lib/rule');
-var KafkaFactory = require('../lib/kafka_factory');
-var RuleExecutor = require('../lib/rule_executor');
+const P = require('bluebird');
+const Rule = require('../lib/rule');
+const KafkaFactory = require('../lib/kafka_factory');
+const RuleExecutor = require('../lib/rule_executor');
 
+class Kafka {
+    constructor(options) {
+        this.log = options.log || function() { };
+        this.kafkaFactory = new KafkaFactory({
+            uri: options.uri || 'localhost:2181/',
+            clientId: options.client_id || 'change-propagation'
+        });
+        this.staticRules = options.templates || {};
+        this.ruleExecutors = {};
+    }
 
-function Kafka(options) {
-    this.log = options.log || function() {};
-    this.kafkaFactory = new KafkaFactory({
-        uri: options.uri || 'localhost:2181/',
-        clientId: options.client_id || 'change-propagation'
-    });
-    this.staticRules = options.templates || {};
-    this.ruleExecutors = {};
+    setup(hyper) {
+        return P.all(Object.keys(this.staticRules)
+            .map((ruleName) => new Rule(ruleName, this.staticRules[ruleName]))
+            .filter((rule) => !rule.noop)
+            .map((rule) => {
+                this.ruleExecutors[rule.name] = new RuleExecutor(rule,
+                    this.kafkaFactory, hyper, this.log);
+                return this.ruleExecutors[rule.name].subscribe();
+            }))
+        .tap(() => {
+            this.log('info/change-prop/init', 'Kafka Queue module initialised');
+        })
+        .thenReturn({ status: 200 });
+    }
 }
 
-Kafka.prototype.setup = function(hyper) {
-    var self = this;
-    return P.all(
-        Object.keys(self.staticRules).map(function(ruleName) {
-            return new Rule(ruleName, self.staticRules[ruleName]);
-        })
-        .filter(function(rule) { return !rule.noop; })
-        .map(function(rule) {
-            self.ruleExecutors[rule.name] = new RuleExecutor(rule,
-                self.kafkaFactory, hyper, self.log);
-            return self.ruleExecutors[rule.name].subscribe();
-        })
-    )
-    .then(function() {
-        self.log('info/change-prop/init', 'Kafka Queue module initialised');
-        return { status: 200 };
-    });
-
-};
-
-
-module.exports = function(options) {
-
-    var kafkaMod = new Kafka(options);
-
+module.exports = (options) => {
+    const kafkaMod = new Kafka(options);
     return {
         spec: {
             paths: {
@@ -65,6 +58,5 @@ module.exports = function(options) {
             uri: '/{domain}/sys/queue/setup'
         }]
     };
-
 };
 
