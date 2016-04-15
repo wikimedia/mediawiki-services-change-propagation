@@ -25,11 +25,6 @@ echo 'delete.topic.enable=true' >> KAFKA_HOME/config/server.properties
 ```
 
 Before starting the development version of change propagation or running
-test you need to start Zookeeper and Kafka:
-
-```bash
-cd $KAFKA_HOME
-./bin/zookeeper-server-start.sh ./config/zookeeper.properties
-./bin/kafka-server-start.sh ./config/server.properties
-```
+test you need to start Zookeeper and Kafka with `start-kafka` npm script.
+To stop Kafka and Zookeeper tun `stop-kafka` npm script.
 

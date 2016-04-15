@@ -10,6 +10,8 @@
   "scripts": {
     "start": "service-runner",
     "cleanup": "sh test/utils/clean_kafka.sh",
+    "start-kafka": "sh test/utils/start_kafka.sh start",
+    "stop-kafka": "sh test/utils/start_kafka.sh stop",
     "test": "npm run cleanup && mocha",
     "coverage": "npm run cleanup && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
