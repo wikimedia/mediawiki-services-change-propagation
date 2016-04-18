@@ -57,16 +57,12 @@ describe('Rule', function() {
         });
 
         it('simple value match', function() {
-            try {
-                var r = new Rule('rule', {
-                    topic: 'nono',
-                    exec: {uri: 'a/b/c'},
-                    match: {number: 1, string: 'oolala'}
-                });
-                assert.ok(r.test(msg), 'Expected the rule to match the given message!');
-            } catch (e ) {
-                console.log(e);
-            }
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {number: 1, string: 'oolala'}
+            });
+            assert.ok(r.test(msg), 'Expected the rule to match the given message!');
         });
 
         it('simple value mismatch', function() {
