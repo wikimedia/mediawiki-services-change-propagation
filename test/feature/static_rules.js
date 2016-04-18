@@ -38,12 +38,83 @@ describe('Basic rule management', function() {
 
         return producer.sendAsync([{
             topic: 'test_topic_simple_test_rule',
-            messages: [ JSON.stringify({ message: 'test' }) ]
+            messages: [
+                JSON.stringify({ message: 'this_will_not_match' }),
+                JSON.stringify({ message: 'test' }) ]
         }])
         .delay(100)
         .then(function() { service.done(); })
         .finally(function() { nock.cleanAll(); });
     });
 
+    it('Should retry simple executor', function() {
+        var service = nock('http://mock.com', {
+            reqheaders: {
+                test_header_name: 'test_header_value',
+                'content-type': 'application/json'
+            }
+        })
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'test'
+        }).reply(500, {})
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'test'
+        }).reply(200, {});
+
+        return producer.sendAsync([{
+            topic: 'test_topic_simple_test_rule',
+            messages: [ JSON.stringify({ message: 'test' }) ]
+        }])
+        .delay(300)
+        .then(function() { service.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
+
     after(function() { return changeProp.stop(); });
+
+
+    it('Should retry simple executor no more than limit', function() {
+        var service = nock('http://mock.com', {
+            reqheaders: {
+                test_header_name: 'test_header_value',
+                'content-type': 'application/json'
+            }
+        })
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'test'
+        }).times(2).reply(500, {});
+
+        return producer.sendAsync([{
+            topic: 'test_topic_simple_test_rule',
+            messages: [ JSON.stringify({ message: 'test' }) ]
+        }])
+        .delay(300)
+        .then(function() { service.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
+    it('Should not crash with unparsable JSON', function() {
+        var service = nock('http://mock.com', {
+            reqheaders: {
+                test_header_name: 'test_header_value',
+                'content-type': 'application/json'
+            }
+        })
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'test'
+        }).reply(200, {});
+
+        return producer.sendAsync([{
+            topic: 'test_topic_simple_test_rule',
+            messages: [ 'non-parsable-json', JSON.stringify({ message: 'test' }) ]
+        }])
+        .delay(100)
+        .then(function() { service.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
 });
