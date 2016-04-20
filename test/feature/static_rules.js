@@ -24,7 +24,8 @@ describe('Basic rule management', () => {
             producer = newProducer;
             return producer.createTopicsAsync([
                 'test_topic_simple_test_rule',
-                'change-prop.retry.test_topic_simple_test_rule'
+                'change-prop.retry.test_topic_simple_test_rule',
+                'test_topic_kafka_producing_rule'
             ], false)
         })
         .then(() => changeProp.start())
@@ -70,6 +71,29 @@ describe('Basic rule management', () => {
         .delay(100)
         .then(() => service.done())
         .finally(() => nock.cleanAll());
+    });
+
+    it('Should support producing to topics on exec', function() {
+        var service = nock('http://mock.com', {
+            reqheaders: {
+                test_header_name: 'test_header_value',
+                'content-type': 'application/json'
+            }
+        })
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'Created an event'
+        }).reply({});
+
+        return producer.sendAsync([{
+            topic: 'test_topic_kafka_producing_rule',
+            messages: [ JSON.stringify({
+                produce_to_topic: 'test_topic_simple_test_rule'
+            }) ]
+        }])
+        .delay(100)
+        .then(function() { service.done(); })
+        .finally(function() { nock.cleanAll(); });
     });
 
     it('Should retry simple executor', () => {

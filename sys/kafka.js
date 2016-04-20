@@ -23,7 +23,10 @@ class Kafka {
     }
 
     setup(hyper) {
-        return P.all(Object.keys(this.staticRules)
+        return this.kafkaFactory.newProducer(this.kafkaFactory.newClient())
+        .then((producer) => {
+            this.producer = producer;
+            return P.all(Object.keys(this.staticRules)
             .map((ruleName) => new Rule(ruleName, this.staticRules[ruleName]))
             .filter((rule) => !rule.noop)
             .map((rule) => {
@@ -31,10 +34,19 @@ class Kafka {
                     this.kafkaFactory, hyper, this.log);
                 return this.ruleExecutors[rule.name].subscribe();
             }))
-        .tap(() => {
-            this.log('info/change-prop/init', 'Kafka Queue module initialised');
+            .tap(() => this.log('info/change-prop/init', 'Kafka Queue module initialised'));
         })
         .thenReturn({ status: 200 });
+    }
+
+    produce(hyper, req) {
+        return this.producer.sendAsync([
+            {
+                topic: req.body.topic,
+                messages: req.body.messages.map(JSON.stringify)
+            }
+        ])
+        .thenReturn({ status: 201 });
     }
 }
 
@@ -48,14 +60,21 @@ module.exports = (options) => {
                         summary: 'set up the kafka listener',
                         operationId: 'setup_kafka'
                     }
+                },
+                '/produce': {
+                    post: {
+                        summary: 'produces a message the kafka topic',
+                        operationId: 'produce'
+                    }
                 }
             }
         },
         operations: {
-            setup_kafka: kafkaMod.setup.bind(kafkaMod)
+            setup_kafka: kafkaMod.setup.bind(kafkaMod),
+            produce: kafkaMod.produce.bind(kafkaMod)
         },
         resources: [{
-            uri: '/{domain}/sys/queue/setup'
+            uri: '/sys/queue/setup'
         }]
     };
 };
