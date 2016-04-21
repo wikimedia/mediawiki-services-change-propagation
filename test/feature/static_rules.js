@@ -19,7 +19,7 @@ describe('Basic rule management', function() {
             producer = newProducer;
             return producer.createTopicsAsync([
                 'test_topic_simple_test_rule',
-                'test_topic_simple_test_rule.retry'
+                'change-prop.retry.test_topic_simple_test_rule'
             ], false)
         })
         .then(function() {
