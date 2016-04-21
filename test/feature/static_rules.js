@@ -111,6 +111,27 @@ describe('Basic rule management', function() {
         .finally(function() { nock.cleanAll(); });
     });
 
+    it('Should not retry if retry_on not matched', function() {
+        var service = nock('http://mock.com', {
+            reqheaders: {
+                test_header_name: 'test_header_value',
+                'content-type': 'application/json'
+            }
+        })
+        .post('/', {
+            'test_field_name': 'test_field_value',
+            'derived_field': 'test'
+        }).reply(404, {});
+
+        return producer.sendAsync([{
+            topic: 'test_topic_simple_test_rule',
+            messages: [ JSON.stringify(eventWithMessage('test')) ]
+        }])
+        .delay(300)
+        .then(function() { service.done(); })
+        .finally(function() { nock.cleanAll(); });
+    });
+
     it('Should not crash with unparsable JSON', function() {
         var service = nock('http://mock.com', {
             reqheaders: {

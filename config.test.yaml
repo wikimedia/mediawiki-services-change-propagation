@@ -20,6 +20,7 @@ services:
                       topic: test_topic_simple_test_rule
                       retry_limit: 2
                       retry_delay: 10
+                      retry_on: [ 500 ]
                       match:
                         message: 'test'
                       exec:
