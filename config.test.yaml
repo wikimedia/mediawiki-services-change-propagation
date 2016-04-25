@@ -44,4 +44,4 @@ services:
                         body:
                           topic: '{{message.produce_to_topic}}'
                           messages:
-                            - message: 'Created an event'
+                            - message: 'test'
