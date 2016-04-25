@@ -40,8 +40,11 @@ services:
                       topic: test_topic_kafka_producing_rule
                       exec:
                         method: 'post'
-                        uri: '/sys/queue/produce'
+                        uri: '/sys/queue/events'
                         body:
-                          topic: '{{message.produce_to_topic}}'
-                          messages:
-                            - message: 'test'
+                          - meta:
+                              topic: '{{message.produce_to_topic}}'
+                            message: 'test'
+                          - meta:
+                              topic: '{{message.produce_to_topic}}'
+                            message: 'test'

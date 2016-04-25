@@ -202,7 +202,7 @@ describe('Basic rule management', function() {
         .post('/', {
             'test_field_name': 'test_field_value',
             'derived_field': 'test'
-        }).reply({});
+        }).times(2).reply({});
 
         return producer.sendAsync([{
             topic: 'test_topic_kafka_producing_rule',

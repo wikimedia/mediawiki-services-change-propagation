@@ -7,6 +7,9 @@
 
 
 const P = require('bluebird');
+const HTTPError = require('hyperswitch').HTTPError;
+const uuid = require('cassandra-uuid').TimeUuid;
+
 const Rule = require('../lib/rule');
 const KafkaFactory = require('../lib/kafka_factory');
 const RuleExecutor = require('../lib/rule_executor');
@@ -40,12 +43,42 @@ class Kafka {
     }
 
     produce(hyper, req) {
-        return this.producer.sendAsync([
-            {
-                topic: req.body.topic,
-                messages: req.body.messages.map(JSON.stringify)
+        const messages = req.body;
+        if (!Array.isArray(messages)) {
+            throw new HTTPError({
+                status: 400,
+                body: {
+                    type: 'bad_request',
+                    detail: 'Events should be an array'
+                }
+            });
+        }
+        const groupedPerTopic = messages.reduce((result, message) => {
+            if (!message || !message.meta || !message.meta.topic) {
+                throw new HTTPError({
+                    status: 400,
+                    body: {
+                        type: 'bad_request',
+                        detail: 'Event must have a meta.topic property',
+                        event: message
+                    }
+                });
             }
-        ])
+            const topic = message.meta.topic;
+            result[topic] = result[topic] || [];
+            const now = new Date();
+            message.meta.id = message.meta.id || uuid.fromDate(now).toString();
+            message.meta.dt = message.meta.dt || now.toISOString();
+            result[topic].push(JSON.stringify(message));
+            return result;
+        }, {});
+
+        return this.producer.sendAsync(Object.keys(groupedPerTopic).map((topic) => {
+            return {
+                topic: topic,
+                messages: groupedPerTopic[topic]
+            };
+        }))
         .thenReturn({ status: 201 });
     }
 }
@@ -61,7 +94,7 @@ module.exports = (options) => {
                         operationId: 'setup_kafka'
                     }
                 },
-                '/produce': {
+                '/events': {
                     post: {
                         summary: 'produces a message the kafka topic',
                         operationId: 'produce'
