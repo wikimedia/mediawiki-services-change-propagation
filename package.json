@@ -37,7 +37,8 @@
     "cassandra-uuid": "^0.0.2",
     "hyperswitch": "^0.3.2",
     "service-runner": "^1.1.7",
-    "wmf-kafka-node": "^0.1.0"
+    "wmf-kafka-node": "^0.1.0",
+    "json-stable-stringify": "git+https://github.com/wikimedia/json-stable-stringify#master"
   },
   "devDependencies": {
     "extend": "^3.0.0",
@@ -48,7 +49,9 @@
     "mocha-lcov-reporter": "^1.2.0",
     "coveralls": "^2.11.6",
     "js-yaml": "^3.5.2",
-    "nock": "^8.0.0"
+    "nock": "^8.0.0",
+    "preq": "^0.4.9",
+    "ajv": "^4.0.3"
   },
   "deploy": {
     "node": "4.3.0",

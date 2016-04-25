@@ -18,6 +18,14 @@ services:
                   templates:
                     simple_test_rule:
                       topic: test_topic_simple_test_rule
+                      retry_limit: 2
+                      retry_delay: 10
+                      retry_on:
+                        status:
+                          - '50x'
+                          - 400
+                      match:
+                        message: 'test'
                       exec:
                         method: post
                         uri: 'http://mock.com'
