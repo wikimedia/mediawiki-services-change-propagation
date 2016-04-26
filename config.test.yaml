@@ -10,7 +10,7 @@ services:
       spec:
         title: The Change Propagation root
         paths:
-          /{domain:a}/sys/queue:
+          /sys/queue:
             x-modules:
               - path: sys/kafka.js
                 options:
@@ -35,3 +35,16 @@ services:
                         body:
                           test_field_name: test_field_value
                           derived_field: '{{message.message}}'
+
+                    kafka_producing_rule:
+                      topic: test_topic_kafka_producing_rule
+                      exec:
+                        method: 'post'
+                        uri: '/sys/queue/events'
+                        body:
+                          - meta:
+                              topic: '{{message.produce_to_topic}}'
+                            message: 'test'
+                          - meta:
+                              topic: '{{message.produce_to_topic}}'
+                            message: 'test'
