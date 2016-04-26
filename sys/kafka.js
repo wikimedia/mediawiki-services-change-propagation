@@ -21,7 +21,8 @@ class Kafka {
             uri: options.uri || 'localhost:2181/',
             clientId: options.client_id || 'change-propagation',
             consume_dc: options.consume_dc,
-            produce_dc: options.produce_dc
+            produce_dc: options.produce_dc,
+            dc_name: options.dc_name
         });
         this.staticRules = options.templates || {};
         this.ruleExecutors = {};
@@ -76,10 +77,8 @@ class Kafka {
         }, {});
 
         return this.producer.sendAsync(Object.keys(groupedPerTopic).map((topic) => {
-            const prefixedTopic = this.kafkaFactory.produceDC ?
-                `${this.kafkaFactory.produceDC}.${topic}` : topic;
             return {
-                topic: prefixedTopic,
+                topic: `${this.kafkaFactory.produceDC}.${topic}`,
                 messages: groupedPerTopic[topic]
             };
         }))
