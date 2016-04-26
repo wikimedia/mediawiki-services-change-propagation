@@ -45,21 +45,24 @@ services:
                           derived_field: '{{message.message}}'
 
                     process_redlinks:
-                      topic: revision_create
+                      topic: mediawiki.revision_create
                       retry_limit: 0
+                      match:
+                        rev_parent_id: undefined
                       exec:
                         method: post
-                        uri: '/sys/links/backlinks/{{message.title}}'
-                        body: '{{$.message}}'
+                        uri: '/sys/links/backlinks/{message.title}'
+                        body: '{{globals.message}}'
 
                     rerender_restbase:
                       topic: resource_change
                       match:
                         meta:
                           uri: '/https:\/\/([a-zA-Z0-9\.]+)\/wiki\/(.+)/'
+                        tags: [ 'change-prop', 'backlinks' ]
                       exec:
                         method: get
-                        uri: 'https://{{$.match.meta.uri[1]}}/api/rest_v1/page/html/{{$.match.meta.uri[2]}}'
+                        uri: 'https://{{match.meta.uri[1]}}/api/rest_v1/page/html/{match.meta.uri[2]}'
                         headers:
                           cache-control: no-cache
 

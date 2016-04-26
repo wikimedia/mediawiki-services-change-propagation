@@ -33,8 +33,8 @@ describe('Basic rule management', function() {
                 'test_dc.change-prop.retry.simple_test_rule',
                 'test_dc.kafka_producing_rule',
                 'test_dc.change-prop.retry.kafka_producing_rule',
-                'test_dc.revision_create',
-                'test_dc.change-prop.retry.revision_create',
+                'test_dc.mediawiki.revision_create',
+                'test_dc.change-prop.retry.mediawiki.revision_create',
                 'test_dc.change-prop.backlinks.continue',
                 'test_dc.change-prop.retry.change-prop.backlinks.continue',
                 'test_dc.resource_change',
@@ -117,9 +117,9 @@ describe('Basic rule management', function() {
         })
         .get('/api/rest_v1/page/html/Some_Page').reply(200);
         return producer.sendAsync([{
-            topic: 'test_dc.revision_create',
+            topic: 'test_dc.mediawiki.revision_create',
             messages: [
-                JSON.stringify(eventWithProperties('revision_create', { title: 'Main_Page' }))
+                JSON.stringify(eventWithProperties('mediawiki.revision_create', { title: 'Main_Page' }))
             ]
         }])
         .delay(300)

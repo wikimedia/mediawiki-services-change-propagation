@@ -92,6 +92,16 @@ describe('Rule', function() {
             assert.ok(!r.test(msg), 'Expected the rule not to match the given message!');
         });
 
+        it('array match', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {array: ['1', 2, '/(\\d)/']}
+            });
+            var msg = { array: [2, '1', '3', '4', 5] };
+            assert.ok(r.test(msg), 'Expected the rule to match the given message!');
+        });
+
         it('malformed match', function() {
             assert.throws(
                 function() {

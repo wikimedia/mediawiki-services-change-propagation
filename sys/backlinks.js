@@ -32,8 +32,8 @@ class BackLinksProcessor {
                     exec: [
                         {
                             method: 'post',
-                            uri: '/sys/links/backlinks/{{message.original_event.title}}',
-                            body: '{{$.message}}'
+                            uri: '/sys/links/backlinks/{message.original_event.title}',
+                            body: '{{globals.message}}'
                         }
                     ]
                 }
