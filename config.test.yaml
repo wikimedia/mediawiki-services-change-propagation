@@ -15,9 +15,11 @@ services:
               - path: sys/kafka.js
                 options:
                   uri: 127.0.0.1:2181
+                  consume_dc: test_dc
+                  produce_dc: test_dc
                   templates:
                     simple_test_rule:
-                      topic: test_topic_simple_test_rule
+                      topic: simple_test_rule
                       retry_limit: 2
                       retry_delay: 10
                       retry_on:
@@ -37,7 +39,7 @@ services:
                           derived_field: '{{message.message}}'
 
                     kafka_producing_rule:
-                      topic: test_topic_kafka_producing_rule
+                      topic: kafka_producing_rule
                       exec:
                         method: 'post'
                         uri: '/sys/queue/events'

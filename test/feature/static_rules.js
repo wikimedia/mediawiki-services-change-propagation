@@ -15,7 +15,8 @@ describe('Basic rule management', function() {
     const changeProp = new ChangeProp('config.test.yaml');
     const kafkaFactory = new KafkaFactory({
         uri: 'localhost:2181/', // TODO: find out from the config
-        clientId: 'change-prop-test-suite'
+        clientId: 'change-prop-test-suite',
+        dc_name: 'test_dc'
     });
     let producer;
     let retrySchema;
@@ -28,10 +29,10 @@ describe('Basic rule management', function() {
         .then((newProducer) => {
             producer = newProducer;
             return producer.createTopicsAsync([
-                'test_topic_simple_test_rule',
-                'change-prop.retry.test_topic_simple_test_rule',
-                'test_topic_kafka_producing_rule',
-                'change-prop.retry.test_topic_kafka_producing_rule'
+                'test_dc.simple_test_rule',
+                'test_dc.change-prop.retry.simple_test_rule',
+                'test_dc.kafka_producing_rule',
+                'test_dc.change-prop.retry.kafka_producing_rule'
             ], false)
         })
         .then(() => changeProp.start())
@@ -44,7 +45,7 @@ describe('Basic rule management', function() {
     function eventWithMessage(message) {
         return {
             meta: {
-                topic: 'test_topic_simple_test_rule',
+                topic: 'simple_test_rule',
                 schema_uri: 'schema/1',
                 uri: '/sample/uri',
                 request_id: uuid.now(),
@@ -69,7 +70,7 @@ describe('Basic rule management', function() {
         }).reply({});
 
         return producer.sendAsync([{
-            topic: 'test_topic_simple_test_rule',
+            topic: 'test_dc.simple_test_rule',
             messages: [
                 JSON.stringify(eventWithMessage('this_will_not_match')),
                 JSON.stringify(eventWithMessage('test')) ]
@@ -96,7 +97,7 @@ describe('Basic rule management', function() {
         }).reply(200, {});
 
         return producer.sendAsync([{
-            topic: 'test_topic_simple_test_rule',
+            topic: 'test_dc.simple_test_rule',
             messages: [ JSON.stringify(eventWithMessage('test')) ]
         }])
         .delay(300)
@@ -107,7 +108,7 @@ describe('Basic rule management', function() {
     it('Should emit valid retry message', (done) => {
         // No need to emit new messages, we will use on from previous test
         return kafkaFactory.newConsumer(kafkaFactory.newClient(),
-            'change-prop.retry.test_topic_simple_test_rule',
+            'change-prop.retry.simple_test_rule',
             'change-prop-test-consumer')
         .then((retryConsumer) => {
             retryConsumer.once('message', (message) => {
@@ -142,7 +143,7 @@ describe('Basic rule management', function() {
         }).times(3).reply(500, {});
 
         return producer.sendAsync([{
-            topic: 'test_topic_simple_test_rule',
+            topic: 'test_dc.simple_test_rule',
             messages: [ JSON.stringify(eventWithMessage('test')) ]
         }])
         .delay(300)
@@ -163,7 +164,7 @@ describe('Basic rule management', function() {
         }).reply(404, {});
 
         return producer.sendAsync([{
-            topic: 'test_topic_simple_test_rule',
+            topic: 'test_dc.simple_test_rule',
             messages: [ JSON.stringify(eventWithMessage('test')) ]
         }])
         .delay(300)
@@ -184,7 +185,7 @@ describe('Basic rule management', function() {
         }).reply(200, {});
 
         return producer.sendAsync([{
-            topic: 'test_topic_simple_test_rule',
+            topic: 'test_dc.simple_test_rule',
             messages: [ 'non-parsable-json', JSON.stringify(eventWithMessage('test')) ]
         }])
         .delay(100)
@@ -205,9 +206,9 @@ describe('Basic rule management', function() {
         }).times(2).reply({});
 
         return producer.sendAsync([{
-            topic: 'test_topic_kafka_producing_rule',
+            topic: 'test_dc.kafka_producing_rule',
             messages: [ JSON.stringify({
-                produce_to_topic: 'test_topic_simple_test_rule'
+                produce_to_topic: 'simple_test_rule'
             }) ]
         }])
         .delay(100)
