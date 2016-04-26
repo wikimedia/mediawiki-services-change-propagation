@@ -16,4 +16,4 @@ dropTopics ( ) {
   fi
 }
 
-dropTopics "test_topic"
+dropTopics "test_dc"

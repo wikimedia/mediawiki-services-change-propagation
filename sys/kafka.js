@@ -19,7 +19,9 @@ class Kafka {
         this.log = options.log || function() { };
         this.kafkaFactory = new KafkaFactory({
             uri: options.uri || 'localhost:2181/',
-            clientId: options.client_id || 'change-propagation'
+            clientId: options.client_id || 'change-propagation',
+            consume_dc: options.consume_dc,
+            produce_dc: options.produce_dc
         });
         this.staticRules = options.templates || {};
         this.ruleExecutors = {};
@@ -75,7 +77,7 @@ class Kafka {
 
         return this.producer.sendAsync(Object.keys(groupedPerTopic).map((topic) => {
             return {
-                topic: topic,
+                topic: `${this.kafkaFactory.produceDC}.${topic}`,
                 messages: groupedPerTopic[topic]
             };
         }))
