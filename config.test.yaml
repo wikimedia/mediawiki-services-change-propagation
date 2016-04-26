@@ -8,6 +8,12 @@ services:
     conf:
       port: 7273
       spec:
+        x-sub-request-filters:
+          - type: default
+            name: http
+            options:
+              allow:
+                - pattern: /^https?:\/\//
         title: The Change Propagation root
         paths:
           /sys/links:
