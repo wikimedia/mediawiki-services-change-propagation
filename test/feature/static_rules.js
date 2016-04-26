@@ -16,8 +16,7 @@ describe('Basic rule management', function() {
     const kafkaFactory = new KafkaFactory({
         uri: 'localhost:2181/', // TODO: find out from the config
         clientId: 'change-prop-test-suite',
-        consume_dc: 'test_dc',
-        produce_dc: 'test_dc'
+        dc_name: 'test_dc'
     });
     let producer;
     let retrySchema;

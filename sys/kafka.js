@@ -76,8 +76,10 @@ class Kafka {
         }, {});
 
         return this.producer.sendAsync(Object.keys(groupedPerTopic).map((topic) => {
+            const prefixedTopic = this.kafkaFactory.produceDC ?
+                `${this.kafkaFactory.produceDC}.${topic}` : topic;
             return {
-                topic: `${this.kafkaFactory.produceDC}.${topic}`,
+                topic: prefixedTopic,
                 messages: groupedPerTopic[topic]
             };
         }))
