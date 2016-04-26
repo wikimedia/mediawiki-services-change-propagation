@@ -10,6 +10,12 @@ services:
       spec:
         title: The Change Propagation root
         paths:
+          /sys/links:
+            x-modules:
+              - path: sys/backlinks.js
+                options:
+                  templates:
+                    apiURITemplate: 'https://{{message.meta.domain}}/w/api.php'
           /sys/queue:
             x-modules:
               - path: sys/kafka.js
@@ -37,6 +43,25 @@ services:
                         body:
                           test_field_name: test_field_value
                           derived_field: '{{message.message}}'
+
+                    process_redlinks:
+                      topic: revision_create
+                      retry_limit: 0
+                      exec:
+                        method: post
+                        uri: '/sys/links/backlinks/{{message.title}}'
+                        body: '{{$.message}}'
+
+                    rerender_restbase:
+                      topic: resource_change
+                      match:
+                        meta:
+                          uri: '/https:\/\/([a-zA-Z0-9\.]+)\/wiki\/(.+)/'
+                      exec:
+                        method: get
+                        uri: 'https://{{$.match.meta.uri[1]}}/api/rest_v1/page/html/{{$.match.meta.uri[2]}}'
+                        headers:
+                          cache-control: no-cache
 
                     kafka_producing_rule:
                       topic: kafka_producing_rule
