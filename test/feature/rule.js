@@ -113,6 +113,45 @@ describe('Rule', function() {
             }, Error);
         });
 
+        it('match_not', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match_not: {meta: {uri: '/my-url/'}}
+            });
+            assert.ok(r.test(msg), 'Expected the rule to match the given message!');
+        });
+
+        it('matches match and match_not', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {number: 1},
+                match_not: {meta: {uri: '/my-url/'}}
+            });
+            assert.ok(r.test(msg), 'Expected the rule to match the given message!');
+        });
+
+        it('matches match but not match_not', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {number: 1},
+                match_not: {meta: {uri: '/fake/'}}
+            });
+            assert.ok(!r.test(msg), 'Expected the rule not to match the given message!');
+        });
+
+        it('matches match_not but not match', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {number: 10},
+                match_not: {meta: {uri: '/my-url/'}}
+            });
+            assert.ok(!r.test(msg), 'Expected the rule not to match the given message!');
+        });
+
         it('expansion', function() {
             var r = new Rule('rule', {
                 topic: 'nono',
