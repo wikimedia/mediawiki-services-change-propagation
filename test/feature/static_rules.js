@@ -32,7 +32,13 @@ describe('Basic rule management', function() {
                 'test_dc.simple_test_rule',
                 'test_dc.change-prop.retry.simple_test_rule',
                 'test_dc.kafka_producing_rule',
-                'test_dc.change-prop.retry.kafka_producing_rule'
+                'test_dc.change-prop.retry.kafka_producing_rule',
+                'test_dc.mediawiki.revision_create',
+                'test_dc.change-prop.retry.mediawiki.revision_create',
+                'test_dc.change-prop.backlinks.continue',
+                'test_dc.change-prop.retry.change-prop.backlinks.continue',
+                'test_dc.resource_change',
+                'test_dc.change-prop.retry.resource_change'
             ], false)
         })
         .then(() => changeProp.start())
@@ -42,20 +48,84 @@ describe('Basic rule management', function() {
         .then((res) => retrySchema = yaml.safeLoad(res.body));
     });
 
-    function eventWithMessage(message) {
-        return {
+    function eventWithProperties(topic, props) {
+        const event = {
             meta: {
-                topic: 'simple_test_rule',
+                topic: topic,
                 schema_uri: 'schema/1',
                 uri: '/sample/uri',
                 request_id: uuid.now(),
                 id: uuid.now(),
                 dt: new Date().toISOString(),
-                domain: 'test_domain'
-            },
-            message: message
-        }
+                domain: 'en.wikipedia.org'
+            }
+        };
+        Object.assign(event, props);
+        return event;
     }
+
+    function eventWithMessage(message) {
+        return eventWithProperties('simple_test_rule', { message: message });
+    }
+    
+    function arrayWithLinks(link, num) {
+        const result = [];
+        for(let idx = 0; idx < num; idx++) {
+            result.push({
+                pageid: 1,
+                ns: 0,
+                title: link
+            });
+        }
+        return result;
+    }
+
+    it('Should process backlinks', () => {
+        const mwAPI = nock('https://en.wikipedia.org')
+        .post('/w/api.php', {
+            format: 'json',
+            action: 'query',
+            list: 'backlinks',
+            bltitle: 'Main_Page',
+            blfilterredir: 'nonredirects',
+            bllimit: '500' })
+        .reply(200, {
+            batchcomplete: '',
+            continue: {
+                blcontinue: '1|2272',
+                continue: '-||'
+            },
+            query: {
+                backlinks: arrayWithLinks('Some_Page', 2)
+            }
+        })
+        .get('/api/rest_v1/page/html/Some_Page').times(2).reply(200)
+        .post('/w/api.php', {
+            format: 'json',
+            action: 'query',
+            list: 'backlinks',
+            bltitle: 'Main_Page',
+            blfilterredir: 'nonredirects',
+            bllimit: '500',
+            blcontinue: '1|2272'
+        })
+        .reply(200, {
+            batchcomplete: '',
+            query: {
+                backlinks: arrayWithLinks('Some_Page', 1)
+            }
+        })
+        .get('/api/rest_v1/page/html/Some_Page').reply(200);
+        return producer.sendAsync([{
+            topic: 'test_dc.mediawiki.revision_create',
+            messages: [
+                JSON.stringify(eventWithProperties('mediawiki.revision_create', { title: 'Main_Page' }))
+            ]
+        }])
+        .delay(300)
+        .then(() => mwAPI.done())
+        .finally(() => nock.cleanAll());
+    });
 
     it('Should call simple executor', () => {
         const service = nock('http://mock.com', {
@@ -193,8 +263,8 @@ describe('Basic rule management', function() {
         .finally(() => nock.cleanAll());
     });
 
-    it('Should support producing to topics on exec', function() {
-        var service = nock('http://mock.com', {
+    it('Should support producing to topics on exec', () => {
+        const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
                 'content-type': 'application/json'
@@ -212,8 +282,8 @@ describe('Basic rule management', function() {
             }) ]
         }])
         .delay(100)
-        .then(function() { service.done(); })
-        .finally(function() { nock.cleanAll(); });
+        .then(() => service.done())
+        .finally(() => nock.cleanAll());
     });
 
     after(() => changeProp.stop());

@@ -32,17 +32,25 @@ class Kafka {
         return this.kafkaFactory.newProducer(this.kafkaFactory.newClient())
         .then((producer) => {
             this.producer = producer;
-            return P.all(Object.keys(this.staticRules)
-            .map((ruleName) => new Rule(ruleName, this.staticRules[ruleName]))
-            .filter((rule) => !rule.noop)
-            .map((rule) => {
-                this.ruleExecutors[rule.name] = new RuleExecutor(rule,
-                    this.kafkaFactory, hyper, this.log);
-                return this.ruleExecutors[rule.name].subscribe();
-            }))
-            .tap(() => this.log('info/change-prop/init', 'Kafka Queue module initialised'));
+            return this._subscribeRules(hyper, this.staticRules);
         })
-        .thenReturn({ status: 200 });
+        .tap(() => this.log('info/change-prop/init', 'Kafka Queue module initialised'));
+    }
+
+    _subscribeRules(hyper, rules) {
+        return P.all(Object.keys(rules)
+        .map((ruleName) => new Rule(ruleName, rules[ruleName]))
+        .filter((rule) => !rule.noop)
+        .map((rule) => {
+            this.ruleExecutors[rule.name] = new RuleExecutor(rule,
+                this.kafkaFactory, hyper, this.log);
+            return this.ruleExecutors[rule.name].subscribe();
+        }))
+        .thenReturn({ status: 201 });
+    }
+
+    subscribe(hyper, req) {
+        return this._subscribeRules(hyper, req.body);
     }
 
     produce(hyper, req) {
@@ -102,12 +110,19 @@ module.exports = (options) => {
                         summary: 'produces a message the kafka topic',
                         operationId: 'produce'
                     }
+                },
+                '/subscriptions': {
+                    post: {
+                        summary: 'adds a new subscription dynamically',
+                        operationId: 'subscribe'
+                    }
                 }
             }
         },
         operations: {
             setup_kafka: kafkaMod.setup.bind(kafkaMod),
-            produce: kafkaMod.produce.bind(kafkaMod)
+            produce: kafkaMod.produce.bind(kafkaMod),
+            subscribe: kafkaMod.subscribe.bind(kafkaMod)
         },
         resources: [{
             uri: '/sys/queue/setup'
