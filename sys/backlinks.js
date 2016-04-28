@@ -59,7 +59,8 @@ class BackLinksProcessor {
                             schema_uri: 'continue/1',
                             uri: originalEvent.meta.uri,
                             request_id: originalEvent.meta.request_id,
-                            domain: originalEvent.meta.domain
+                            domain: originalEvent.meta.domain,
+                            dt: originalEvent.meta.dt
                         },
                         original_event: originalEvent,
                         continue: res.body.continue.blcontinue
@@ -81,7 +82,8 @@ class BackLinksProcessor {
                         // TODO: need to check whether a wiki is http or https!
                         uri: `https://${originalEvent.meta.domain}/wiki/${item.title}`,
                         request_id: originalEvent.meta.request_id,
-                        domain: originalEvent.meta.domain
+                        domain: originalEvent.meta.domain,
+                        dt: originalEvent.meta.dt
                     },
                     tags: [ 'change-prop', 'backlinks' ]
                 };
