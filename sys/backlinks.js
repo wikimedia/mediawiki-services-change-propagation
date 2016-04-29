@@ -1,5 +1,6 @@
 "use strict";
 
+const extend = require('extend');
 const HyperSwitch = require('hyperswitch');
 const Template = HyperSwitch.Template;
 
@@ -8,9 +9,8 @@ const CONTINUE_TOPIC_NAME = 'change-prop.backlinks.continue';
 class BackLinksProcessor {
     constructor(options) {
         this.options = options;
-        this.backLinksRequest = new Template({
+        this.backLinksRequest = new Template(extend(true, {}, options.templates.mw_api, {
             method: 'post',
-            uri: options.templates.apiURITemplate,
             body: {
                 format: 'json',
                 action: 'query',
@@ -20,7 +20,7 @@ class BackLinksProcessor {
                 blcontinue: '{{message.continue}}',
                 bllimit: 500
             }
-        });
+        }));
     }
 
     setup(hyper) {
