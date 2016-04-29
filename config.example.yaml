@@ -24,7 +24,7 @@ services:
     # per-service config
     conf:
       # the port to bind to
-      port: 7273
+      port: 7272
       # IP address to bind to, all IPs by default
       # interface: localhost # uncomment to only listen on localhost
       # allow cross-domain requests to the API (default '*')

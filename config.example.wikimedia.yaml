@@ -21,7 +21,10 @@ services:
               - path: sys/backlinks.js
                 options:
                   templates:
-                    apiURITemplate: 'https://{{message.meta.domain}}/w/api.php'
+                    mw_api:
+                        uri: 'https://{{message.meta.domain}}/w/api.php'
+                        headers:
+                          host: '{{message.meta.domain}}'
           /sys/queue:
             x-modules:
               - path: sys/kafka.js
