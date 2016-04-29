@@ -277,9 +277,9 @@ describe('Basic rule management', function() {
 
         return producer.sendAsync([{
             topic: 'test_dc.kafka_producing_rule',
-            messages: [ JSON.stringify({
+            messages: [ JSON.stringify(eventWithProperties('test_dc.kafka_producing_rule', {
                 produce_to_topic: 'simple_test_rule'
-            }) ]
+            })) ]
         }])
         .delay(100)
         .then(() => service.done())
