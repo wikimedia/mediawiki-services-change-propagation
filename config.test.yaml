@@ -84,3 +84,9 @@ services:
                           - meta:
                               topic: '{{message.produce_to_topic}}'
                             message: 'test'
+
+                    # This rule is used to verify that change prop doesn't fail with non-existent topics
+                    rule_with_non_existent_topic:
+                      topic: this_topic_does_not_exist
+                      exec:
+                        uri: 'https://test.com'
