@@ -58,6 +58,8 @@ services:
                         method: get
                         # Don't encode title since it should be already encoded
                         uri: '{{match.meta.uri[1]}}://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri[2]}}'
+                        query:
+                          redirect: false
                         headers:
                           cache-control: no-cache
 
@@ -80,6 +82,8 @@ services:
                         method: get
                         # Don't encode title since it should be already encoded
                         uri: '{{match.meta.uri[1]}}://{{message.meta.domain}}/api/rest_v1/page/definition/{{match.meta.uri[2]}}'
+                        query:
+                          redirect: false
                         headers:
                           cache-control: no-cache
 
@@ -96,6 +100,8 @@ services:
                       exec:
                         method: get
                         uri: '{{match.meta.uri[1]}}://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{{match.meta.uri[2]}}'
+                        query:
+                          redirect: false
                         headers:
                           cache-control: no-cache
 
