@@ -40,6 +40,7 @@ describe('RESTBase update rules', function() {
             }
         })
         .get('/api/rest_v1/page/summary/Main%20Page')
+        .query({ redirect: false })
         .reply(200, { });
 
         return producer.sendAsync([{
@@ -71,6 +72,7 @@ describe('RESTBase update rules', function() {
             }
         })
         .get('/api/rest_v1/page/definition/Main%20Page')
+        .query({ redirect: false })
         .reply(200, { });
 
         return producer.sendAsync([{
@@ -102,6 +104,7 @@ describe('RESTBase update rules', function() {
             }
         })
         .get('/api/rest_v1/page/mobile-sections/Main%20Page')
+        .query({ redirect: false })
         .reply(200, { });
 
         return producer.sendAsync([{
