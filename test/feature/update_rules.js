@@ -4,11 +4,13 @@ const ChangeProp = require('../utils/changeProp');
 const KafkaFactory = require('../../lib/kafka_factory');
 const nock = require('nock');
 const uuid = require('cassandra-uuid').TimeUuid;
+const common = require('../utils/common');
 const dgram  = require('dgram');
 const assert = require('assert');
+const P = require('bluebird');
 
 describe('RESTBase update rules', function() {
-    this.timeout(1000);
+    this.timeout(2000);
 
     const changeProp = new ChangeProp('config.example.wikimedia.yaml');
     const kafkaFactory = new KafkaFactory({
@@ -20,15 +22,16 @@ describe('RESTBase update rules', function() {
 
     before(function() {
         // Setting up might tike some tome, so disable the timeout
-        this.timeout(0);
+        this.timeout(20000);
 
         return kafkaFactory.newProducer(kafkaFactory.newClient())
         .then((newProducer) => {
             producer = newProducer;
-            return producer.createTopicsAsync([
-                'test_dc.resource_change',
-                'test_dc.change-prop.retry.resource_change'
-            ], false)
+            if (!common.topics_created) {
+                common.topics_created = true;
+                return producer.createTopicsAsync(common.ALL_TOPICS, false)
+            }
+            return P.resolve();
         })
         .then(() => changeProp.start());
     });
@@ -60,7 +63,7 @@ describe('RESTBase update rules', function() {
                 })
             ]
         }])
-        .delay(300)
+        .delay(common.REQUEST_CHECK_DELAY)
         .then(() => mwAPI.done())
         .finally(() => nock.cleanAll());
     });
@@ -92,7 +95,7 @@ describe('RESTBase update rules', function() {
                 })
             ]
         }])
-        .delay(300)
+        .delay(common.REQUEST_CHECK_DELAY)
         .then(() => mwAPI.done())
         .finally(() => nock.cleanAll());
     });
@@ -124,7 +127,7 @@ describe('RESTBase update rules', function() {
                 })
             ]
         }])
-        .delay(300)
+        .delay(common.REQUEST_CHECK_DELAY)
         .then(() => mwAPI.done())
         .finally(() => nock.cleanAll());
     });
@@ -157,7 +160,7 @@ describe('RESTBase update rules', function() {
                 })
             ]
         }])
-        .delay(300)
+        .delay(common.REQUEST_CHECK_DELAY)
         .finally(() => {
             nock.cleanAll();
             if (!mwAPI.isDone()) {
@@ -204,7 +207,7 @@ describe('RESTBase update rules', function() {
                 })
             ]
         }])
-        .delay(300)
+        .delay(common.REQUEST_CHECK_DELAY)
         .finally(() => {
             if (!closed) {
                 udpServer.close();
