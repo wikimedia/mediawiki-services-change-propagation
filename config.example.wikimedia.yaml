@@ -37,6 +37,7 @@ services:
                 options:
                   uri: 127.0.0.1:2181
                   dc_name: test_dc
+                  concurrency: 250
                   templates:
 
                     summary_rerender:

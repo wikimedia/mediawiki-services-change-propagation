@@ -43,6 +43,6 @@ services:
               - path: sys/kafka.js
                 options:
                   uri: 127.0.0.1:2181
-                  consume_dc: default
-                  produce_dc: default
+                  dc_name: default
+                  concurrency: 10
                   templates: {}
