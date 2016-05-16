@@ -32,6 +32,7 @@ services:
                   uri: 127.0.0.1:2181
                   consume_dc: test_dc
                   produce_dc: test_dc
+                  concurrency: 2
                   templates:
                     simple_test_rule:
                       topic: simple_test_rule
