@@ -43,6 +43,8 @@ services:
                           - '50x'
                           - 400
                       match:
+                        meta:
+                          uri: '/sample/uri'
                         message: 'test'
                       exec:
                         method: post
@@ -84,7 +86,11 @@ services:
                         body:
                           - meta:
                               topic: '{{message.produce_to_topic}}'
+                              uri: '{{message.meta.uri}}'
+                              request_id: '{{message.meta.request_id}}'
                             message: 'test'
                           - meta:
                               topic: '{{message.produce_to_topic}}'
+                              uri: '{{message.meta.uri}}'
+                              request_id: '{{message.meta.request_id}}'
                             message: 'test'
