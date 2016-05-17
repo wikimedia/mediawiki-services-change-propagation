@@ -20,13 +20,15 @@ common.ALL_TOPICS = [
     'test_dc.change-prop.retry.resource_change'
 ];
 
+common.SAMPLE_REQUEST_ID = uuid.now().toString();
+
 common.eventWithProperties = (topic, props) => {
     const event = {
         meta: {
             topic: topic,
             schema_uri: 'schema/1',
             uri: '/sample/uri',
-            request_id: uuid.now(),
+            request_id: common.SAMPLE_REQUEST_ID,
             id: uuid.now(),
             dt: new Date().toISOString(),
             domain: 'en.wikipedia.org'

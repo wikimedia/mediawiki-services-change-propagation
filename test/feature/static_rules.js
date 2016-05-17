@@ -58,7 +58,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -70,7 +71,9 @@ describe('Basic rule management', function() {
             topic: 'test_dc.simple_test_rule',
             messages: [
                 JSON.stringify(common.eventWithMessage('this_will_not_match')),
-                JSON.stringify(common.eventWithMessage('test')) ]
+                JSON.stringify(common.eventWithMessage('test')),
+                // The empty message should cause a failure in the match test
+                '{}' ]
         }])
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => service.done())
@@ -81,7 +84,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -106,7 +110,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -149,7 +154,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -170,7 +176,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -191,7 +198,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
@@ -212,7 +220,8 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com', {
             reqheaders: {
                 test_header_name: 'test_header_value',
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'x-request-id': common.SAMPLE_REQUEST_ID
             }
         })
         .post('/', {
