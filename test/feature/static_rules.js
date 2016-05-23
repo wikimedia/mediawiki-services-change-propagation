@@ -21,6 +21,7 @@ describe('Basic rule management', function() {
     });
     let producer;
     let retrySchema;
+    let errorSchema;
 
     before(function() {
         // Setting up might tike some tome, so disable the timeout
@@ -39,7 +40,11 @@ describe('Basic rule management', function() {
         .then(() => preq.get({
                 uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/change-prop/retry/1.yaml'
         }))
-        .then((res) => retrySchema = yaml.safeLoad(res.body));
+        .then((res) => retrySchema = yaml.safeLoad(res.body))
+        .then(() => preq.get({
+                uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/error/1.yaml'
+        }))
+        .then((res) => errorSchema = yaml.safeLoad(res.body));
     });
 
     function arrayWithLinks(link, num) {
@@ -323,6 +328,37 @@ describe('Basic rule management', function() {
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => mwAPI.done())
         .finally(() => nock.cleanAll());
+    });
+
+    it('Should emit valid messages to error topic', (done) => {
+        // No need to emit new messages, we will use on from previous test
+        kafkaFactory.newConsumer(kafkaFactory.newClient(),
+            'change-prop.error',
+            'change-prop-test-error-consumer')
+        .then((errorConsumer) => {
+            errorConsumer.once('message', (message) => {
+                try {
+                    const ajv = new Ajv();
+                    const validate = ajv.compile(errorSchema);
+                    var valid = validate(JSON.parse(message.value));
+                    if (!valid) {
+                        done(new assert.AssertionError({
+                            message: ajv.errorsText(validate.errors)
+                        }));
+                    } else {
+                        done();
+                    }
+                } catch(e) {
+                    done(e);
+                }
+            });
+        })
+        .then(() => {
+            return producer.sendAsync([{
+                topic: 'test_dc.mediawiki.revision_create',
+                messages: [ 'not_a_json_message' ]
+            }]);
+        });
     });
 
     after(() => changeProp.stop());
