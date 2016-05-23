@@ -162,6 +162,30 @@ describe('Rule', function() {
             assert.deepEqual(exp.meta.uri, /\/fake\/([^\/]+)/.exec(msg.meta.uri));
         });
 
+        it('expansion with named groups', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/{match.meta.uri.element}/c'},
+                match: { meta: { uri: "/\\/fake\\/(?<element>[^\\/]+)/" }, number: 1 }
+            });
+            var exp = r.expand(msg);
+            assert.deepEqual(exp.meta.uri, { element: 'uri' });
+        });
+
+        it('checks for named and unnamed groups mixing', function() {
+            try {
+                var r = new Rule('rule', {
+                    topic: 'nono',
+                    exec: {uri: 'a/{match.meta.uri.element}/c'},
+                    match: { meta: { uri: "/\\/(\w+)\\/(?<element>[^\\/]+)/" }, number: 1 }
+                });
+                throw new Error('Error must be thrown');
+            } catch (e) {
+                assert.deepEqual(e.message,
+                    'Invalid match regex. Mixing named and unnamed capture groups are not supported. Regex: /\\/(w+)\\/(?<element>[^\\/]+)/');
+            }
+        });
+
     });
 
 });
