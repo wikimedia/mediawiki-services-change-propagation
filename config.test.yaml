@@ -60,6 +60,7 @@ services:
                         body:
                           test_field_name: test_field_value
                           derived_field: '{{message.message}}'
+                          random_field: '{{message.random}}'
 
                     redirect_testing_rule:
                       topic: simple_test_rule

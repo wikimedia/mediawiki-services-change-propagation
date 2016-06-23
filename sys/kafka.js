@@ -7,7 +7,8 @@
 
 
 const P = require('bluebird');
-const HTTPError = require('hyperswitch').HTTPError;
+const HyperSwitch = require('hyperswitch');
+const HTTPError = HyperSwitch.HTTPError;
 const uuid = require('cassandra-uuid').TimeUuid;
 
 const Rule = require('../lib/rule');
@@ -29,6 +30,10 @@ class Kafka {
         this.staticRules = options.templates || {};
         this.ruleExecutors = {};
         this.taskQueue = new TaskQueue(this.tqOpts);
+
+        HyperSwitch.lifecycle.on('close', () => {
+            this.close();
+        });
     }
 
     setup(hyper) {
@@ -95,6 +100,12 @@ class Kafka {
         }))
         .thenReturn({ status: 201 });
     }
+
+    close() {
+        return P.each(Object.values(this.ruleExecutors),
+            (executor) => executor.close())
+        .thenReturn({ status: 200 });
+    }
 }
 
 module.exports = (options) => {
@@ -132,4 +143,3 @@ module.exports = (options) => {
         }]
     };
 };
-
