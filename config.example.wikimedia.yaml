@@ -166,6 +166,10 @@ spec: &spec
 
               revision_visibility_change:
                 topic: mediawiki.revision_visibility_set
+                ignore:
+                  status:
+                    - 403 # When the revision is hidden 403 will be returned by RESTBase, it's a valid situation
+                    - 412
                 exec:
                   method: get
                   uri: 'https://{{message.meta.domain}}/api/rest_v1/page/revision/{{message.revision_id}}'
