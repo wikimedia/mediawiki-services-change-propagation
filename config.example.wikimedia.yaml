@@ -210,16 +210,16 @@ spec: &spec
                 topic: mediawiki.page_move
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.old_title}'
-                    headers:
-                      cache-control: no-cache
-                    query:
-                      redirect: false
-                  - method: get
                     uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.new_title}/{{message.new_revision_id}}'
                     headers:
                       cache-control: no-cache
                       if-unmodified-since: '{{date(message.meta.dt)}}'
+                    query:
+                      redirect: false
+                  - method: get
+                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.old_title}'
+                    headers:
+                      cache-control: no-cache
                     query:
                       redirect: false
 

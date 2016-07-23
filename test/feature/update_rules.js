@@ -396,11 +396,11 @@ describe('RESTBase update rules', function() {
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
-        .query({ redirect: false })
-        .reply(200, { })
         .get('/api/rest_v1/page/html/User%3APchelolo%2FTest1/2')
         .matchHeader( 'if-unmodified-since', 'Thu, 01 Jan 1970 00:00:01 +0000')
+        .query({ redirect: false })
+        .reply(200, { })
+        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
         .query({ redirect: false })
         .reply(200, { });
 
