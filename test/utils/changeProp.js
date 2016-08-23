@@ -38,7 +38,7 @@ ChangeProp.prototype.start = function() {
 
     return this._runner.start(this._config)
     .tap(() => this._running = true)
-    .delay(200)
+    .delay(5000)
     .catch((e) => {
         if (startupRetryLimit > 0 && /EADDRINUSE/.test(e.message)) {
             console.log('Execution of the previous test might have not finished yet. Retry startup');
@@ -51,7 +51,7 @@ ChangeProp.prototype.start = function() {
 
 ChangeProp.prototype.stop = function() {
     if (this._running) {
-        this._runner.stop()
+        return this._runner.stop()
         .tap(() => this._running = false)
         .delay(CHANGE_PROP_STOP_DELAY);
     }

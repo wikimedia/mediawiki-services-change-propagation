@@ -14,28 +14,19 @@ const uuid = require('cassandra-uuid').TimeUuid;
 const Rule = require('../lib/rule');
 const KafkaFactory = require('../lib/kafka_factory');
 const RuleExecutor = require('../lib/rule_executor');
+const RetryExecutor = require('../lib/retry_executor');
 
 class Kafka {
     constructor(options) {
         this.options = options;
         this.log = options.log || function() { };
-        this.kafkaFactory = new KafkaFactory({
-            uri: options.uri || 'localhost:2181/',
-            clientId: options.client_id || 'change-propagation',
-            consume_dc: options.consume_dc,
-            produce_dc: options.produce_dc,
-            dc_name: options.dc_name
-        });
+        this.kafkaFactory = new KafkaFactory(options);
         this.staticRules = options.templates || {};
         this.ruleExecutors = {};
-
-        HyperSwitch.lifecycle.on('close', () => {
-            this.close();
-        });
     }
 
     setup(hyper) {
-        return this.kafkaFactory.newProducer(this.kafkaFactory.newClient())
+        return this.kafkaFactory.createProducer()
         .then((producer) => {
             this.producer = producer;
             return this._subscribeRules(hyper, this.staticRules);
@@ -50,7 +41,11 @@ class Kafka {
         return P.each(activeRules, (rule) => {
             this.ruleExecutors[rule.name] = new RuleExecutor(rule,
                 this.kafkaFactory, hyper, this.log, this.options);
-            return this.ruleExecutors[rule.name].subscribe();
+            this.ruleExecutors[`${rule.name}_retry`] = new RetryExecutor(rule,
+                this.kafkaFactory, hyper, this.log, this.options);
+            return P.join(
+                    this.ruleExecutors[rule.name].subscribe(),
+                    this.ruleExecutors[`${rule.name}_retry`].subscribe());
         })
         .thenReturn({ status: 201 });
     }
@@ -70,7 +65,8 @@ class Kafka {
                 }
             });
         }
-        const groupedPerTopic = messages.reduce((result, message) => {
+        // Check whether all messages contain the topic
+        messages.forEach((message) => {
             if (!message || !message.meta || !message.meta.topic) {
                 throw new HTTPError({
                     status: 400,
@@ -81,28 +77,17 @@ class Kafka {
                     }
                 });
             }
-            const topic = message.meta.topic;
-            result[topic] = result[topic] || [];
+        });
+        return P.all(messages.map((message) => {
             const now = new Date();
             message.meta.id = message.meta.id || uuid.fromDate(now).toString();
             message.meta.dt = message.meta.dt || now.toISOString();
-            result[topic].push(JSON.stringify(message));
-            return result;
-        }, {});
-
-        return this.producer.sendAsync(Object.keys(groupedPerTopic).map((topic) => {
-            return {
-                topic: `${this.kafkaFactory.produceDC}.${topic}`,
-                messages: groupedPerTopic[topic]
-            };
+            return this.producer.produceAsync({
+                message: JSON.stringify(message),
+                topic: `${this.kafkaFactory.produceDC}.${message.meta.topic}`,
+            });
         }))
         .thenReturn({ status: 201 });
-    }
-
-    close() {
-        return P.each(Object.values(this.ruleExecutors),
-            (executor) => executor.close())
-        .thenReturn({ status: 200 });
     }
 }
 

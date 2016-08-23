@@ -9,24 +9,18 @@ spec: &spec
               user-agent: true
   title: The Change Propagation root
   paths:
-    /sys/links:
-      x-modules:
-        - path: sys/dep_updates.js
-          options:
-            templates:
-              mw_api:
-                  uri: 'https://{{message.meta.domain}}/w/api.php'
-                  headers:
-                    host: '{{message.meta.domain}}'
-                  body:
-                    formatversion: 2
     /sys/queue:
       x-modules:
         - path: sys/kafka.js
           options:
-            uri: 127.0.0.1:2181
+            metadata_broker_list: 127.0.0.1:9092
             consume_dc: test_dc
             produce_dc: test_dc
+            startup_delay: 0
+            consumer:
+              fetch.wait.max.ms: "1"
+              fetch.min.bytes: "1"
+              queue.buffering.max.ms: "1"
             concurrency: 1
             templates:
               simple_test_rule:
@@ -64,28 +58,6 @@ spec: &spec
                 exec:
                   method: get
                   uri: 'http://mock.com/will_redirect'
-
-              process_redlinks:
-                topic: mediawiki.revision_create
-                retry_limit: 0
-                match:
-                  rev_parent_id: undefined
-                exec:
-                  method: post
-                  uri: '/sys/links/backlinks/{message.title}'
-                  body: '{{globals.message}}'
-
-              rerender_restbase:
-                topic: resource_change
-                match:
-                  meta:
-                    uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'change-prop', 'backlinks' ]
-                exec:
-                  method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
-                  headers:
-                    cache-control: no-cache
 
               kafka_producing_rule:
                 topic: kafka_producing_rule

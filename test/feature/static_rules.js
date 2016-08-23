@@ -1,7 +1,6 @@
 "use strict";
 
 const ChangeProp = require('../utils/changeProp');
-const KafkaFactory = require('../../lib/kafka_factory');
 const nock = require('nock');
 const preq = require('preq');
 const Ajv = require('ajv');
@@ -10,15 +9,13 @@ const yaml = require('js-yaml');
 const common = require('../utils/common');
 const P = require('bluebird');
 
+process.env.UV_THREADPOOL_SIZE = 128;
+
 describe('Basic rule management', function() {
-    this.timeout(2000);
+    this.timeout(10000);
 
     const changeProp = new ChangeProp('config.test.yaml');
-    const kafkaFactory = new KafkaFactory({
-        uri: 'localhost:2181/', // TODO: find out from the config
-        clientId: 'change-prop-test-suite',
-        dc_name: 'test_dc'
-    });
+
     let producer;
     let retrySchema;
     let errorSchema;
@@ -28,25 +25,10 @@ describe('Basic rule management', function() {
         // Setting up might tike some tome, so disable the timeout
         this.timeout(20000);
 
-        return kafkaFactory.newProducer(kafkaFactory.newClient())
-        .then((newProducer) => {
-            producer = newProducer;
-            if (!common.topics_created) {
-                common.topics_created = true;
-                return P.each(common.ALL_TOPICS, (topic) => {
-                    return producer.createTopicsAsync([ topic ], false);
-                });
-            }
-            return P.resolve();
-        })
-        .then(() => changeProp.start())
-        .then(() => preq.get({
-                uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/change-prop/retry/1.yaml'
-        }))
+        return changeProp.start()
+        .then(() => preq.get({ uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/change-prop/retry/1.yaml' }))
         .then((res) => retrySchema = yaml.safeLoad(res.body))
-        .then(() => preq.get({
-                uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/error/1.yaml'
-        }))
+        .then(() => preq.get({ uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/error/1.yaml' }))
         .then((res) => errorSchema = yaml.safeLoad(res.body))
         .then(() => {
             preq.post({
@@ -60,6 +42,8 @@ describe('Basic rule management', function() {
             });
         })
         .then((res) => siteInfoResponse = res)
+        .then(common.factory.createProducer.bind(common.factory))
+        .then((result) => producer = result);
     });
 
     it('Should call simple executor', () => {
@@ -79,16 +63,17 @@ describe('Basic rule management', function() {
             'random_field': random
         }).reply({});
 
-        return producer.sendAsync([{
-            topic: 'test_dc.simple_test_rule',
-            messages: [
-                JSON.stringify(common.eventWithMessageAndRandom('this_will_not_match', random)),
-                JSON.stringify(common.eventWithMessageAndRandom('test', random)),
-                // The empty message should cause a failure in the match test
-                '{}' ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => service.done())
+        return P.each([
+            JSON.stringify(common.eventWithMessageAndRandom('this_will_not_match', random)),
+            JSON.stringify(common.eventWithMessageAndRandom('test', random)),
+            // The empty message should cause a failure in the match test
+            '{}'
+        ], (msg) =>
+            producer.produceAsync({
+                message: msg,
+                topic: 'test_dc.simple_test_rule'
+            }))
+        .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
@@ -117,12 +102,11 @@ describe('Basic rule management', function() {
         .matchHeader('x-triggered-by', 'simple_test_rule:/sample/uri,change-prop.retry.simple_test_rule:/sample/uri')
         .reply(200, {});
 
-        return producer.sendAsync([{
+        return producer.produceAsync({
             topic: 'test_dc.simple_test_rule',
-            messages: [ JSON.stringify(common.eventWithMessageAndRandom('test', random)) ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => service.done())
+            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
+        })
+        .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
@@ -165,18 +149,16 @@ describe('Basic rule management', function() {
         })
         .reply(500, {});
 
-        return producer.sendAsync([{
+        return producer.produceAsync({
             topic: 'test_dc.simple_test_rule',
-            messages: [ JSON.stringify(common.eventWithMessageAndRandom('test', random)) ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => {
-            assert.equal(service.pendingMocks().length, 1);
+            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
         })
+        .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
 
-    it('Should emit valid retry message', (done) => {
+    it('Should emit valid retry message', function() {
+        this.timeout(10000);
         const random = common.randomString();
         nock('http://mock.com', {
             reqheaders: {
@@ -198,34 +180,43 @@ describe('Basic rule management', function() {
             'random_field': random
         })
         .reply(200, {});
-        
-        return kafkaFactory.newConsumer(kafkaFactory.newClient(),
-            'change-prop.retry.simple_test_rule',
-            'change-prop-test-consumer-valid-retry')
+
+        return common.factory.createConsumer(
+            'change-prop-test-consumer-valid-retry',
+            'test_dc.change-prop.retry.simple_test_rule' )
         .then((retryConsumer) => {
-            retryConsumer.once('message', (message) => {
-                try {
+            setTimeout(() => producer.produce({
+                topic: 'test_dc.simple_test_rule',
+                message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
+            }), 2000);
+
+            function check() {
+                return retryConsumer.consumeAsync()
+                .catch(check)
+                .then((message) => {
+                    if (!message) {
+                        return;
+                    }
+
                     const ajv = new Ajv();
                     const validate = ajv.compile(retrySchema);
-                    const msg = JSON.parse(message.value);
+                    const msg = JSON.parse(message.message.toString());
                     const valid = validate(msg);
                     if (!valid) {
-                        done(new assert.AssertionError({
+                        throw new assert.AssertionError({
                             message: ajv.errorsText(validate.errors)
-                        }));
-                    } else if (msg.triggered_by !== 'simple_test_rule:/sample/uri') {
-                            done(new Error('TriggeredBy should be equal to simple_test_rule:/sample/uri'));
-                    } else {
-                        done();
+                        });
                     }
-                } catch(e) {
-                    done(e);
-                }
-            });
-            return producer.sendAsync([{
-                topic: 'test_dc.simple_test_rule',
-                messages: [ JSON.stringify(common.eventWithMessageAndRandom('test', random)) ]
-            }]);
+                    if (msg.original_event.random !== random) {
+                        return check();
+                    }
+
+                    if (msg.triggered_by !== 'simple_test_rule:/sample/uri') {
+                        throw new Error('TriggeredBy should be equal to simple_test_rule:/sample/uri');
+                    }
+                });
+            }
+            return check();
         });
     });
 
@@ -254,12 +245,11 @@ describe('Basic rule management', function() {
         })
         .reply(404, {});
 
-        return producer.sendAsync([{
+        return producer.produceAsync({
             topic: 'test_dc.simple_test_rule',
-            messages: [ JSON.stringify(common.eventWithMessageAndRandom('test', random)) ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => assert.equal(service.pendingMocks().length, 1))
+            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
+        })
+        .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
 
@@ -273,14 +263,11 @@ describe('Basic rule management', function() {
         .get('/redirected_resource')
         .reply(200, {});
 
-        return producer.sendAsync([{
+        return producer.produceAsync({
             topic: 'test_dc.simple_test_rule',
-            messages: [
-                JSON.stringify(common.eventWithMessage('redirect'))
-            ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => assert.equal(service.pendingMocks().length, 1))
+            message: JSON.stringify(common.eventWithMessage('redirect'))
+        })
+        .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
 
@@ -300,12 +287,14 @@ describe('Basic rule management', function() {
         })
         .reply(200, {});
 
-        return producer.sendAsync([{
+        return P.each([
+            'non-parsable-json',
+            JSON.stringify(common.eventWithMessage('test'))
+        ], (msg) => producer.produceAsync({
             topic: 'test_dc.simple_test_rule',
-            messages: [ 'non-parsable-json', JSON.stringify(common.eventWithMessage('test')) ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => service.done())
+            message: msg
+        }))
+        .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
@@ -325,153 +314,46 @@ describe('Basic rule management', function() {
         .matchHeader('x-triggered-by', 'test_dc.kafka_producing_rule:/sample/uri,simple_test_rule:/sample/uri')
         .times(2).reply({});
 
-        return producer.sendAsync([{
+        return producer.produceAsync({
             topic: 'test_dc.kafka_producing_rule',
-            messages: [ JSON.stringify(common.eventWithProperties('test_dc.kafka_producing_rule', {
+            message: JSON.stringify(common.eventWithProperties('test_dc.kafka_producing_rule', {
                 produce_to_topic: 'simple_test_rule'
-            })) ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => service.done())
+            }))
+        })
+        .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
-    it('Should process backlinks', () => {
-        const mwAPI = nock('https://en.wikipedia.org')
-        .post('/w/api.php', {
-            format: 'json',
-            action: 'query',
-            meta: 'siteinfo',
-            siprop: 'general|namespaces|namespacealiases'
-        })
-        .reply(200, common.EN_SITE_INFO_RESPONSE)
-        .post('/w/api.php', {
-            format: 'json',
-            action: 'query',
-            list: 'backlinks',
-            bltitle: 'Main_Page',
-            blfilterredir: 'nonredirects',
-            bllimit: '500',
-            formatversion: '2'
-        })
-        .reply(200, {
-            batchcomplete: '',
-            continue: {
-                blcontinue: '1|2272',
-                continue: '-||'
-            },
-            query: {
-                backlinks: common.arrayWithLinks('Some_Page', 2)
-            }
-        })
-        .get('/api/rest_v1/page/html/Some_Page')
-        .matchHeader('x-triggered-by', 'mediawiki.revision_create:/sample/uri,resource_change:https://en.wikipedia.org/wiki/Some_Page')
-        .times(2)
-        .reply(200)
-        .post('/w/api.php', {
-            format: 'json',
-            action: 'query',
-            list: 'backlinks',
-            bltitle: 'Main_Page',
-            blfilterredir: 'nonredirects',
-            bllimit: '500',
-            blcontinue: '1|2272',
-            formatversion: '2'
-        })
-        .reply(200, {
-            batchcomplete: '',
-            query: {
-                backlinks: common.arrayWithLinks('Some_Page', 1)
-            }
-        })
-        .get('/api/rest_v1/page/html/Some_Page')
-        .matchHeader('x-triggered-by', 'mediawiki.revision_create:/sample/uri,resource_change:https://en.wikipedia.org/wiki/Some_Page')
-        .reply(200);
-
-        return producer.sendAsync([{
-            topic: 'test_dc.mediawiki.revision_create',
-            messages: [
-                JSON.stringify(common.eventWithProperties('mediawiki.revision_create', { title: 'Main_Page' }))
-            ]
-        }])
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => mwAPI.done())
-        .finally(() => nock.cleanAll());
-    });
-
-    it('Should emit valid messages to error topic', (done) => {
-        // No need to emit new messages, we will use on from previous test
-        kafkaFactory.newConsumer(kafkaFactory.newClient(),
-            'change-prop.error',
-            'change-prop-test-error-consumer')
+    it('Should emit valid messages to error topic', () => {
+        return common.factory.createConsumer(
+            'change-prop-test-error-consumer',
+            'test_dc.change-prop.error')
         .then((errorConsumer) => {
-            errorConsumer.once('message', (message) => {
-                try {
+            setTimeout(() => producer.produceAsync({
+                topic: 'test_dc.simple_test_rule',
+                message: 'not_a_json_message'
+            }), 2000);
+
+            function check() {
+                return errorConsumer.consumeAsync()
+                .catch(check)
+                .then((message) => {
+                    if (!message) {
+                        return;
+                    }
+
                     const ajv = new Ajv();
                     const validate = ajv.compile(errorSchema);
-                    var valid = validate(JSON.parse(message.value));
+                    var valid = validate(JSON.parse(message.message.toString()));
                     if (!valid) {
-                        done(new assert.AssertionError({
+                        throw  new assert.AssertionError({
                             message: ajv.errorsText(validate.errors)
-                        }));
-                    } else {
-                        done();
+                        });
                     }
-                } catch(e) {
-                    done(e);
-                }
-            });
-        })
-        .then(() => {
-            return producer.sendAsync([{
-                topic: 'test_dc.mediawiki.revision_create',
-                messages: [ 'not_a_json_message' ]
-            }]);
-        });
-    });
-
-    it('Should not emit messages to error topic if ignore condition was met', (done) => {
-        let finished = false;
-        const service = nock('http://mock.com', {
-            reqheaders: {
-                test_header_name: 'test_header_value',
-                'content-type': 'application/json',
-                'x-request-id': common.SAMPLE_REQUEST_ID,
-                'user-agent': 'ChangePropTestSuite'
+                });
             }
-        })
-        .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test'
-        })
-        .matchHeader('x-triggered-by', 'simple_test_rule:/sample/uri')
-        .reply(403, {});
 
-        kafkaFactory.newConsumer(kafkaFactory.newClient(),
-            'change-prop.error',
-            'change-prop-test-error-consumer')
-        .then((errorConsumer) => {
-            errorConsumer.once('message', (message) => {
-                if (!finished) {
-                    finished = true;
-                    done(new Error('Error should have been ignored'))
-                }
-            });
-        })
-        .then(() => {
-            return producer.sendAsync([{
-                topic: 'test_dc.simple_test_rule',
-                messages: [ JSON.stringify(common.eventWithMessage('test')) ]
-            }])
-            .delay(common.REQUEST_CHECK_DELAY)
-            .then(() => service.done())
-            .finally(() => {
-                nock.cleanAll();
-                if (!finished) {
-                    finished = true;
-                    done();
-                }
-            });
+            return check();
         });
     });
 
