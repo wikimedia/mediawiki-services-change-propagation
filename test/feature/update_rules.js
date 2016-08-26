@@ -413,6 +413,106 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should update RESTBase summary on wikidata description change', () => {
+        const wikidataAPI = nock('https://www.wikidata.org')
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'wbgetentities',
+            ids: 'Q1',
+            props: 'sitelinks/urls',
+            normalize: 'true'
+        })
+        .reply(200, {
+            "entities": {
+                "Q1": {
+                    "type": "item",
+                    "id": "Q1",
+                    "sitelinks": {
+                        "enwiki": {
+                            "site": "enwiki",
+                            "title": "Main Page",
+                            "badges": [],
+                            "url": "https://en.wikipedia.org/wiki/Main_Page"
+                        }
+                    }
+                }
+            }
+        });
+
+        const restbase = nock('https://en.wikipedia.org', {
+            reqheaders: {
+                'cache-control': 'no-cache',
+                'x-request-id': common.SAMPLE_REQUEST_ID,
+                'user-agent': 'SampleChangePropInstance',
+                'x-triggered-by': 'mediawiki.revision_create:/rev/uri,resource_change:https://en.wikipedia.org/wiki/Main_Page'
+            }
+        })
+        .get('/api/rest_v1/page/summary/Main_Page')
+        .query({ redirect: false })
+        .reply(200, { });
+
+        return producer.produceAsync({
+            topic: 'test_dc.mediawiki.revision_create',
+            message: JSON.stringify({
+                meta: {
+                    topic: 'mediawiki.revision_create',
+                    schema_uri: 'revision_create/1',
+                    uri: '/rev/uri',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'www.wikidata.org'
+                },
+                page_title: 'Q1'
+            })
+        })
+        .delay(common.REQUEST_CHECK_DELAY)
+        .then(() => common.checkAPIDone(wikidataAPI))
+        .then(() => common.checkAPIDone(restbase))
+        .finally(() => nock.cleanAll());
+    });
+
+    it('Should not crash if wikidata description can not be found', () => {
+        const wikidataAPI = nock('https://www.wikidata.org')
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'wbgetentities',
+            ids: 'Q2',
+            props: 'sitelinks/urls',
+            normalize: 'true'
+        })
+        .reply(200, {
+            "entities": {
+                "Q1220694122": {
+                    "id": "Q1220694122",
+                    "missing": ""
+                }
+            },
+            "success": 1
+        });
+
+        return producer.produceAsync({
+            topic: 'test_dc.mediawiki.revision_create',
+            message: JSON.stringify({
+                meta: {
+                    topic: 'mediawiki.revision_create',
+                    schema_uri: 'revision_create/1',
+                    uri: '/rev/uri',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'www.wikidata.org'
+                },
+                page_title: 'Q2'
+            })
+        })
+        .delay(common.REQUEST_CHECK_DELAY)
+        .then(() => common.checkAPIDone(wikidataAPI))
+        .finally(() => nock.cleanAll());
+    });
+
     it('Should rerender image usages on file update', () => {
         const mwAPI = nock('https://en.wikipedia.org')
         .post('/w/api.php', {
