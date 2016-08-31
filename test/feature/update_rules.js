@@ -474,6 +474,50 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should not ask Wikidata for info for non-mainspace titles', () => {
+        const wikidataAPI = nock('https://www.wikidata.org')
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'wbgetentities',
+            ids: 'Property:P1',
+            props: 'sitelinks/urls',
+            normalize: 'true'
+        })
+        .reply(200, {
+            "error": {
+                "docref": "See https://www.wikidata.org/w/api.php for API usage",
+                "messages": [{
+                    "html": "Could not find such an entity.",
+                    "parameters": [],
+                    "name": "wikibase-api-no-such-entity"
+                }],
+                "id": "Property:P1",
+                "info": "Could not find such an entity. (Invalid id: Property:1)",
+                "code": "no-such-entity"
+            },
+        });
+
+        return producer.produceAsync({
+            topic: 'test_dc.mediawiki.revision_create',
+            message: JSON.stringify({
+                meta: {
+                    topic: 'mediawiki.revision_create',
+                    schema_uri: 'revision_create/1',
+                    uri: '/rev/uri',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'www.wikidata.org'
+                },
+                page_title: 'Property:P1'
+            })
+        })
+        .delay(common.REQUEST_CHECK_DELAY)
+        .then(() => common.checkPendingMocks(wikidataAPI, 1))
+        .finally(() => nock.cleanAll());
+    });
+
     it('Should not crash if wikidata description can not be found', () => {
         const wikidataAPI = nock('https://www.wikidata.org')
         .post('/w/api.php', {

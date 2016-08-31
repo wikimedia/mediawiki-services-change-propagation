@@ -490,6 +490,8 @@ spec: &spec
                 match:
                   meta:
                     domain: www.wikidata.org
+                match_not:
+                  page_title: /:/
                 exec:
                   method: 'post'
                   uri: '/sys/links/wikidata_descriptions'
