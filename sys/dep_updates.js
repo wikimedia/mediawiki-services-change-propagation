@@ -207,10 +207,11 @@ class DependencyProcessor {
                 const items = this.wikidataRequest.extractResults(res);
                 return this._sendResourceChanges(hyper, items, req.body,
                     this.wikidataRequest.resourceChangeTag);
-            } else {
+            } else if (res.body && res.body.error) {
                 this.log('warn/wikidata_description', {
                     msg: 'Could not extract items',
-                    event: context.message
+                    event: context.message,
+                    error: res.body.error
                 });
             }
         })
