@@ -88,7 +88,20 @@ function createWikidataTemplate(options) {
             }
         })),
         resourceChangeTag: 'wikidata',
-        shouldProcess: (res) => { return res && res.body && !!res.body.success; },
+        shouldProcess: (res) => {
+            if (!(res && res.body && !!res.body.success)) {
+                return false;
+            }
+            const entities = res.body.entities || {};
+            if (!Object.keys(entities).length) {
+                return false;
+            }
+            const sitelinks = entities[Object.keys(entities)[0]].sitelinks || {};
+            if (!Object.keys(sitelinks).length) {
+                return false;
+            }
+            return true;
+        },
         extractResults: (res) => {
             const siteLinks = res.body.entities[Object.keys(res.body.entities)[0]].sitelinks;
             return Object.keys(siteLinks).map((siteId) => {
