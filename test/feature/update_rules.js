@@ -617,6 +617,71 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should rerender transclusions on page update', () => {
+        const mwAPI = nock('https://en.wikipedia.org')
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'query',
+            prop: 'transcludedin',
+            tiprop: 'title',
+            tishow: '!redirect',
+            titles: 'Test_Page',
+            tilimit: '500'
+        })
+        .reply(200, {
+            batchcomplete: '',
+            continue: {
+                ticontinue: '1|2272',
+                continue: '-||'
+            },
+            query: {
+                pages: {
+                    '12345': {
+                        transcludedin: common.arrayWithLinks('Transcluded_Here', 2)
+                    }
+                }
+            }
+        })
+        .get('/api/rest_v1/page/html/Transcluded_Here')
+        .query({redirect: false})
+        .matchHeader('x-triggered-by', 'mediawiki.revision_create:/sample/uri,resource_change:https://en.wikipedia.org/wiki/Transcluded_Here')
+        .times(2)
+        .reply(200)
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'query',
+            prop: 'transcludedin',
+            tiprop: 'title',
+            tishow: '!redirect',
+            titles: 'Test_Page',
+            tilimit: '500',
+            ticontinue: '1|2272'
+        })
+        .reply(200, {
+            batchcomplete: '',
+            query: {
+                pages: {
+                    '12345': {
+                        transcludedin: common.arrayWithLinks('Transcluded_Here', 1)
+                    }
+                }
+            }
+        })
+        .get('/api/rest_v1/page/html/Transcluded_Here')
+        .query({redirect: false})
+        .matchHeader('x-triggered-by', 'mediawiki.revision_create:/sample/uri,resource_change:https://en.wikipedia.org/wiki/Transcluded_Here')
+        .reply(200);
+
+        return producer.produceAsync({
+            topic: 'test_dc.mediawiki.revision_create',
+            message: JSON.stringify(common.eventWithProperties('mediawiki.revision_create', { page_title: 'Test_Page' }))
+        })
+        .then(() => common.checkAPIDone(mwAPI, 50))
+        .finally(() => nock.cleanAll());
+    });
+
     it('Should purge caches on resource_change coming from RESTBase', (done) => {
         var udpServer = dgram.createSocket('udp4');
         let closed = false;
