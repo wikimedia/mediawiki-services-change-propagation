@@ -747,9 +747,8 @@ describe('RESTBase update rules', function() {
         .finally(() => {
             if (!closed) {
                 udpServer.close();
-                throw new Error('Timeout!');
+                done(new Error('Timeout!'));
             }
-            done();
         });
     });
 
