@@ -319,7 +319,7 @@ class DependencyProcessor {
                     `https://${item.domain}/wiki/${encodeURIComponent(item.title)}`;
                 return {
                     meta: {
-                        topic: 'resource_change',
+                        topic: 'change-prop.transcludes.resource-change',
                         schema_uri: 'resource_change/1',
                         uri: resourceURI,
                         request_id: originalEvent.meta.request_id,
@@ -327,7 +327,7 @@ class DependencyProcessor {
                         dt: originalEvent.meta.dt
                     },
                     triggered_by: utils.triggeredBy(originalEvent),
-                    tags: [ 'change-prop', tag ]
+                    tags: [ tag ]
                 };
             })
         });

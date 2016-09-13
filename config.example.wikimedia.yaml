@@ -246,11 +246,11 @@ spec: &spec
                   body: '{{globals.message}}'
 
               on_transclusion_update:
-                topic: resource_change
+                topic: change-prop.transcludes.resource-change
                 match:
                   meta:
                     uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'change-prop', 'transcludes' ]
+                  tags: [ 'transcludes' ]
                 exec:
                   method: get
                   uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
@@ -502,11 +502,11 @@ spec: &spec
                   body: '{{globals.message}}'
 
               rerender_restbase:
-                topic: resource_change
+                topic: change-prop.transcludes.resource-change
                 match:
                   meta:
                     uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'change-prop', 'backlinks' ]
+                  tags: [ 'backlinks' ]
                 exec:
                   method: get
                   uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
@@ -525,11 +525,11 @@ spec: &spec
                   body: '{{globals.message}}'
 
               on_wikidata_description_change:
-                topic: resource_change
+                topic: change-prop.transcludes.resource-change
                 match:
                   meta:
                     uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'change-prop', 'wikidata' ]
+                  tags: [ 'wikidata' ]
                 exec:
                   - method: get
                     uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
