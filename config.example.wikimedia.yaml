@@ -179,7 +179,7 @@ spec: &spec
                     redirect: false
 
               revision_visibility_change:
-                topic: mediawiki.revision-visibility-set
+                topic: mediawiki.revision-visibility-change
                 ignore:
                   status:
                     - 403 # When the revision is hidden 403 will be returned by RESTBase, it's a valid situation
