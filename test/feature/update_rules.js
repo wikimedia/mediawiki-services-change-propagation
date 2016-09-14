@@ -354,7 +354,7 @@ describe('RESTBase update rules', function() {
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': 'mediawiki.revision-visibility-set:/rev/uri',
+                'x-triggered-by': 'mediawiki.revision-visibility-change:/rev/uri',
                 'x-request-id': common.SAMPLE_REQUEST_ID,
                 'user-agent': 'SampleChangePropInstance'
             }
@@ -364,10 +364,10 @@ describe('RESTBase update rules', function() {
         .reply(200, { });
 
         return producer.produceAsync({
-            topic: 'test_dc.mediawiki.revision-visibility-set',
+            topic: 'test_dc.mediawiki.revision-visibility-change',
             message: JSON.stringify({
                 meta: {
-                    topic: 'mediawiki.revision-visibility-set',
+                    topic: 'mediawiki.revision-visibility-change',
                     schema_uri: 'revision_visibility_set/1',
                     uri: '/rev/uri',
                     request_id: common.SAMPLE_REQUEST_ID,
