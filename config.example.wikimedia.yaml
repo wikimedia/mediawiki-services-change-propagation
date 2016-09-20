@@ -204,12 +204,32 @@ spec: &spec
                     - 404 # 404 is a normal response for page deletion
                     - 412
                 exec:
-                  method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}'
-                  headers:
-                    cache-control: no-cache
-                  query:
-                    redirect: false
+                  - method: get
+                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}'
+                    headers:
+                      cache-control: no-cache
+                    query:
+                      redirect: false
+                  # For page deletion RESTBase doesn't emit resource_change events, and to go through
+                  # the normal purge chain (html update -> html resource_change -> summary update -> summary resource_change)
+                  # we need to add many workarounds/shortcurst in RESTBase. So having this list here is an OK compromise.
+                  - method: post
+                    uri: '/sys/purge/'
+                    body:
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/definition/{message.page_title}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-lead/{message.page_title}'
+                      - meta:
+                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-remaining/{message.page_title}'
 
               page_restore:
                 topic: mediawiki.page-undelete
