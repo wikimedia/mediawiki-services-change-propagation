@@ -592,25 +592,21 @@ spec: &spec
                 # We don't support 'OR' in the match section, so workaround it by 2 cases with identical exec
                 cases:
                   - match:
-                      meta:
-                        uri: '/^https?:\/\/[^\/]+\/wiki\/(?<title>.+)$/'
                       added_properties:
                         page_image: '/.+/' # Regex that matches anything just to check the prop is set
                     exec:
                       method: get
-                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
+                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
                       headers:
                         cache-control: no-cache
                       query:
                         redirect: false
                   - match:
-                      meta:
-                        uri: '/^https?:\/\/[^\/]+\/wiki\/(?<title>.+)$/'
                       removed_properties:
                         page_image: '/.+/' # Regex that matches anything just to check the prop is set
                     exec:
                       method: get
-                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
+                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
                       headers:
                         cache-control: no-cache
                       query:

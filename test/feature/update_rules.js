@@ -82,7 +82,8 @@ describe('RESTBase update rules', function() {
                 },
                 added_properties: {
                     page_image: 'Test.jpg'
-                }
+                },
+                page_title: 'Some_Page'
             })
         })
         .then(() => common.checkAPIDone(mwAPI))
