@@ -83,6 +83,17 @@ describe('Rule', function() {
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
+        it('regex match with undefined', function() {
+            var r = new Rule('rule', {
+                topic: 'nono',
+                exec: {uri: 'a/b/c'},
+                match: {number: 1, string: '/.+/'}
+            });
+            var msgWithUndefined = Object.assign({}, msg);
+            msgWithUndefined.string = undefined;
+            assert.equal(r.test(msgWithUndefined), -1, 'Expected the rule not to match the given message!');
+        });
+
         it('regex mismatch', function() {
             var r = new Rule('rule', {
                 topic: 'nono',
