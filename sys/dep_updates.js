@@ -107,7 +107,7 @@ function createWikidataTemplate(options) {
             const siteLinks = res.body.entities[Object.keys(res.body.entities)[0]].sitelinks;
             return Object.keys(siteLinks).map((siteId) => {
                 const pageURI = siteLinks[siteId].url;
-                const match = /^https?:\/\/([^\/]+)\/wiki\/(.+)$/.exec(pageURI);
+                const match = /^https?:\/\/([^/]+)\/wiki\/(.+)$/.exec(pageURI);
                 return {
                     domain: match[1],
                     title: decodeURIComponent(match[2])

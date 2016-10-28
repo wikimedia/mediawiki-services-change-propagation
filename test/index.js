@@ -8,4 +8,6 @@ require('mocha-jscs')();
 require('mocha-eslint')([
     'lib',
     'sys'
-]);
+], {
+    timeout: 10000
+});
