@@ -261,7 +261,7 @@ spec: &spec
                     domain: /\.wikidata\.org$/
                 exec:
                   method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}'
+                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}'
                   headers:
                     cache-control: no-cache
                   query:
