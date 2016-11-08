@@ -352,7 +352,7 @@ describe('RESTBase update rules', function() {
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/html/User%3APchelolo%2FTest')
+        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
         .query({ redirect: false })
         .reply(200, { });
 
