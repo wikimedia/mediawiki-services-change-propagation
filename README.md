@@ -76,7 +76,7 @@ Here's a sample script you need to run:
 
 ```bash
 export KAFKA_HOME=<your desired kafka install path>
-wget http://www.us.apache.org/dist/kafka/0.8.2.2/kafka_2.10-0.8.2.2.tgz -O kafka.tgz
+wget http://mirror.pekalatechnology.com/apache/kafka/0.9.0.1/kafka_2.10-0.9.0.1.tgz -O kafka.tgz
 mkdir -p $KAFKA_HOME && tar xzf kafka.tgz -C $KAFKA_HOME --strip-components 1
 echo "KAFKA_HOME=$KAFKA_HOME" >> ~/.bash_profile
 echo "PATH=\$PATH:\$KAFKA_HOME/bin" >> ~/.bash_profile
