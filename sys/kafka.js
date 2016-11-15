@@ -29,6 +29,7 @@ class Kafka {
         return this.kafkaFactory.createProducer()
         .then((producer) => {
             this.producer = producer;
+            HyperSwitch.lifecycle.on('close', () => this.producer.disconnect());
             return this._subscribeRules(hyper, this.staticRules);
         })
         .tap(() => this.log('info/change-prop/init', 'Kafka Queue module initialised'));
@@ -47,7 +48,12 @@ class Kafka {
                     this.ruleExecutors[rule.name].subscribe(),
                     this.ruleExecutors[`${rule.name}_retry`].subscribe());
         })
-        .thenReturn({ status: 201 });
+        .then(() => {
+            HyperSwitch.lifecycle.on('close', () =>
+                Object.keys(this.ruleExecutors).forEach((executorName) =>
+                    this.ruleExecutors[executorName].close()));
+            return { status: 201 };
+        });
     }
 
     subscribe(hyper, req) {
