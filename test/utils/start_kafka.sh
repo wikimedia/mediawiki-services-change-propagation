@@ -26,6 +26,6 @@ if [ "$1" = "start" ]; then
     echo "Kafka already running";
   fi
 elif [ "$1" = "stop" ]; then
-  sh $KAFKA_HOME/bin/kafka-server-stop.sh &
-  sh $KAFKA_HOME/bin/zookeeper-server-stop.sh &
+  ps ax | grep -i 'kafka\.Kafka' | grep java | grep -v grep | awk '{print $1}' | xargs kill -SIGKILL 2>/dev/null &
+  ps ax | grep -i 'zookeeper' | grep -v grep | awk '{print $1}' | xargs kill -SIGKILL 2>/dev/null &
 fi
