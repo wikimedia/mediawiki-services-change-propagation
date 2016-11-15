@@ -85,10 +85,8 @@ class Kafka {
             const now = new Date();
             message.meta.id = message.meta.id || uuid.fromDate(now).toString();
             message.meta.dt = message.meta.dt || now.toISOString();
-            return this.producer.produceAsync({
-                message: JSON.stringify(message),
-                topic: `${this.kafkaFactory.produceDC}.${message.meta.topic}`,
-            });
+            return this.producer.produce(`${this.kafkaFactory.produceDC}.${message.meta.topic}`, 0,
+                Buffer.from(JSON.stringify(message)));
         }))
         .thenReturn({ status: 201 });
     }
