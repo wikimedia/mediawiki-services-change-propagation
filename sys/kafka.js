@@ -29,6 +29,7 @@ class Kafka {
         return this.kafkaFactory.createProducer()
         .then((producer) => {
             this.producer = producer;
+            HyperSwitch.lifecycle.on('close', () => this.producer.disconnect());
             return this._subscribeRules(hyper, this.staticRules);
         })
         .tap(() => this.log('info/change-prop/init', 'Kafka Queue module initialised'));
@@ -47,7 +48,12 @@ class Kafka {
                     this.ruleExecutors[rule.name].subscribe(),
                     this.ruleExecutors[`${rule.name}_retry`].subscribe());
         })
-        .thenReturn({ status: 201 });
+        .then(() => {
+            HyperSwitch.lifecycle.on('close', () =>
+                Object.keys(this.ruleExecutors).forEach((executorName) =>
+                    this.ruleExecutors[executorName].close()));
+            return { status: 201 };
+        });
     }
 
     subscribe(hyper, req) {
@@ -85,10 +91,8 @@ class Kafka {
             const now = new Date();
             message.meta.id = message.meta.id || uuid.fromDate(now).toString();
             message.meta.dt = message.meta.dt || now.toISOString();
-            return this.producer.produceAsync({
-                message: JSON.stringify(message),
-                topic: `${this.kafkaFactory.produceDC}.${message.meta.topic}`,
-            });
+            return this.producer.produce(`${this.kafkaFactory.produceDC}.${message.meta.topic}`, 0,
+                Buffer.from(JSON.stringify(message)));
         }))
         .thenReturn({ status: 201 });
     }

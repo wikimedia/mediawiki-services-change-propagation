@@ -68,11 +68,8 @@ describe('Basic rule management', function() {
             JSON.stringify(common.eventWithMessageAndRandom('test', random)),
             // The empty message should cause a failure in the match test
             '{}'
-        ], (msg) =>
-            producer.produceAsync({
-                message: msg,
-                topic: 'test_dc.simple_test_rule'
-            }))
+        ].map((strMsg) => Buffer.from(strMsg)),
+            (msg) => producer.produce('test_dc.simple_test_rule', 0, msg))
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
@@ -102,10 +99,8 @@ describe('Basic rule management', function() {
         .matchHeader('x-triggered-by', 'simple_test_rule:/sample/uri,change-prop.retry.simple_test_rule:/sample/uri')
         .reply(200, {});
 
-        return producer.produceAsync({
-            topic: 'test_dc.simple_test_rule',
-            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
-        })
+        return P.try(() => producer.produce('test_dc.simple_test_rule', 0,
+            Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))))
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
@@ -149,10 +144,8 @@ describe('Basic rule management', function() {
         })
         .reply(500, {});
 
-        return producer.produceAsync({
-            topic: 'test_dc.simple_test_rule',
-            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
-        })
+        return P.try(() => producer.produce('test_dc.simple_test_rule', 0,
+            Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))))
         .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
@@ -185,10 +178,8 @@ describe('Basic rule management', function() {
             'change-prop-test-consumer-valid-retry',
             'test_dc.change-prop.retry.simple_test_rule' )
         .then((retryConsumer) => {
-            setTimeout(() => producer.produce({
-                topic: 'test_dc.simple_test_rule',
-                message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
-            }), 2000);
+            setTimeout(() => producer.produce('test_dc.simple_test_rule', 0,
+                Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))), 2000);
 
             function check() {
                 return retryConsumer.consumeAsync()
@@ -200,7 +191,7 @@ describe('Basic rule management', function() {
 
                     const ajv = new Ajv();
                     const validate = ajv.compile(retrySchema);
-                    const msg = JSON.parse(message.message.toString());
+                    const msg = JSON.parse(message.value.toString());
                     const valid = validate(msg);
                     if (!valid) {
                         throw new assert.AssertionError({
@@ -245,10 +236,8 @@ describe('Basic rule management', function() {
         })
         .reply(404, {});
 
-        return producer.produceAsync({
-            topic: 'test_dc.simple_test_rule',
-            message: JSON.stringify(common.eventWithMessageAndRandom('test', random))
-        })
+        return P.try(() => producer.produce('test_dc.simple_test_rule', 0,
+            Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))))
         .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
@@ -263,10 +252,8 @@ describe('Basic rule management', function() {
         .get('/redirected_resource')
         .reply(200, {});
 
-        return producer.produceAsync({
-            topic: 'test_dc.simple_test_rule',
-            message: JSON.stringify(common.eventWithMessage('redirect'))
-        })
+        return P.try(() => producer.produce('test_dc.simple_test_rule', 0,
+            Buffer.from(JSON.stringify(common.eventWithMessage('redirect')))))
         .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });
@@ -290,10 +277,8 @@ describe('Basic rule management', function() {
         return P.each([
             'non-parsable-json',
             JSON.stringify(common.eventWithMessage('test'))
-        ], (msg) => producer.produceAsync({
-            topic: 'test_dc.simple_test_rule',
-            message: msg
-        }))
+        ].map((strMsg) => Buffer.from(strMsg)),
+            (msg) => producer.produce('test_dc.simple_test_rule', 0, msg))
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
@@ -314,12 +299,10 @@ describe('Basic rule management', function() {
         .matchHeader('x-triggered-by', 'test_dc.kafka_producing_rule:/sample/uri,simple_test_rule:/sample/uri')
         .times(2).reply({});
 
-        return producer.produceAsync({
-            topic: 'test_dc.kafka_producing_rule',
-            message: JSON.stringify(common.eventWithProperties('test_dc.kafka_producing_rule', {
+        return P.try(() => producer.produce('test_dc.kafka_producing_rule', 0,
+            Buffer.from(JSON.stringify(common.eventWithProperties('test_dc.kafka_producing_rule', {
                 produce_to_topic: 'simple_test_rule'
-            }))
-        })
+            })))))
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
@@ -329,10 +312,8 @@ describe('Basic rule management', function() {
             'change-prop-test-error-consumer',
             'test_dc.change-prop.error')
         .then((errorConsumer) => {
-            setTimeout(() => producer.produceAsync({
-                topic: 'test_dc.simple_test_rule',
-                message: 'not_a_json_message'
-            }), 2000);
+            setTimeout(() =>
+                producer.produce('test_dc.simple_test_rule', 0, Buffer.from('not_a_json_message')), 2000);
 
             function check() {
                 return errorConsumer.consumeAsync()
@@ -344,7 +325,7 @@ describe('Basic rule management', function() {
 
                     const ajv = new Ajv();
                     const validate = ajv.compile(errorSchema);
-                    var valid = validate(JSON.parse(message.message.toString()));
+                    var valid = validate(JSON.parse(message.value.toString()));
                     if (!valid) {
                         throw  new assert.AssertionError({
                             message: ajv.errorsText(validate.errors)
