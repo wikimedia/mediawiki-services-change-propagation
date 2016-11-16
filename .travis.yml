@@ -23,4 +23,4 @@ addons:
 
 script: npm run coverage && (npm run coveralls || exit 0)
 
-after_script: sh test/utils/start_kafka.sh stop
+after_script: sh test/utils/start_kafka.sh kill
