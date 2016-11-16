@@ -10,9 +10,10 @@ dropTopics ( ) {
     	| grep -v 'marked for deletion$'`
     for TOPIC in ${TOPICS}
     do
-      echo "dropping topic ${TOPIC}"
-      ${KAFKA_HOME}/bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic ${TOPIC} > /dev/null
+      echo "dropping topic ${TOPIC}" && \
+        ${KAFKA_HOME}/bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic ${TOPIC} > /dev/null &
     done
+    wait
   fi
 }
 
@@ -22,7 +23,7 @@ createTopic ( ) {
         --zookeeper 127.0.0.1:2181             \
         --partitions 1                         \
         --replication-factor 1                 \
-        --topic $1 > /dev/null
+        --topic $1 > /dev/null &
 }
 
 check ( ) {
@@ -64,4 +65,5 @@ createTopic "test_dc.change-prop.transcludes.resource-change"
 createTopic "test_dc.change-prop.retry.change-prop.transcludes.resource-change"
 createTopic "test_dc.mediawiki.page-properties-change"
 createTopic "test_dc.change-prop.retry.mediawiki.page-properties-change"
+wait
 sleep 5
