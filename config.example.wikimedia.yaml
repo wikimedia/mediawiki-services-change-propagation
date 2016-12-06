@@ -318,19 +318,28 @@ spec: &spec
 
               on_transclusion_update:
                 topic: change-prop.transcludes.resource-change
-                match:
-                  meta:
-                    uri: '/https?:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'transcludes' ]
-                exec:
-                  method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
-                  headers:
-                    cache-control: no-cache
-                    if-unmodified-since: '{{date(message.meta.dt)}}'
-                    x-restbase-mode: '{{message.tags[1]}}'
-                  query:
-                    redirect: false
+                cases:
+                  - match:
+                      meta:
+                        schema_uri: 'resource_change/1'
+                        uri: '/https?:\/\/[^\/]+\/wiki\/(?<title>.+)/'
+                      tags: [ 'transcludes' ]
+                    exec:
+                      method: get
+                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
+                      headers:
+                        cache-control: no-cache
+                        if-unmodified-since: '{{date(message.meta.dt)}}'
+                        x-restbase-mode: '{{message.tags[1]}}'
+                      query:
+                        redirect: false
+                  - match:
+                      meta:
+                        schema_uri: 'continue/1'
+                    exec:
+                      method: post
+                      uri: '/sys/links/transcludes/{message.original_event.page_title}'
+                      body: '{{globals.message}}'
 
               # ORES caching updates
               ores_cache:
@@ -581,16 +590,26 @@ spec: &spec
                   body: '{{globals.message}}'
 
               rerender_restbase:
-                topic: change-prop.transcludes.resource-change
-                match:
-                  meta:
-                    uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                  tags: [ 'backlinks' ]
-                exec:
-                  method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
-                  headers:
-                    cache-control: no-cache
+                topic: change-prop.backlinks.resource-change
+                cases:
+                  - match:
+                      meta:
+                        uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
+                        schema_uri: 'resource_change/1'
+                      tags: [ 'backlinks' ]
+                    exec:
+                      method: get
+                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
+                      headers:
+                        cache-control: no-cache
+                      refirect: false
+                  - match:
+                      meta:
+                        schema_uri: 'continue/1'
+                    exec:
+                      method: post
+                      uri: '/sys/links/backlinks/{message.original_event.page_title}'
+                      body: '{{globals.message}}'
 
               wikidata_description_on_edit:
                 topic: mediawiki.revision-create

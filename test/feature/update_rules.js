@@ -875,7 +875,7 @@ describe('RESTBase update rules', function() {
             }
         })
         .get('/api/rest_v1/page/html/Some_Page')
-        .matchHeader('x-triggered-by', 'mediawiki.revision-create:/sample/uri,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Some_Page')
+        .matchHeader('x-triggered-by', 'mediawiki.revision-create:/sample/uri,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Some_Page')
         .times(2)
         .reply(200)
         .post('/w/api.php', {
@@ -895,7 +895,7 @@ describe('RESTBase update rules', function() {
             }
         })
         .get('/api/rest_v1/page/html/Some_Page')
-        .matchHeader('x-triggered-by', 'mediawiki.revision-create:/sample/uri,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Some_Page')
+        .matchHeader('x-triggered-by', 'mediawiki.revision-create:/sample/uri,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Some_Page')
         .reply(200);
 
         return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
