@@ -7,6 +7,7 @@ const common     = require('../utils/common');
 const dgram      = require('dgram');
 const assert     = require('assert');
 const P          = require('bluebird');
+const preq       = require('preq');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
@@ -15,11 +16,25 @@ describe('RESTBase update rules', function() {
 
     const changeProp = new ChangeProp('config.example.wikimedia.yaml');
     let producer;
+    let siteInfoResponse;
 
     before(function() {
         // Setting up might take some tome, so disable the timeout
         this.timeout(50000);
         return changeProp.start()
+        .then(() => {
+            return preq.post({
+                uri: 'https://en.wikipedia.org/w/api.php',
+                body: {
+                    formatversion: '2',
+                    format: 'json',
+                    action: 'query',
+                    meta: 'siteinfo',
+                    siprop: 'general|namespaces|namespacealiases'
+                }
+            });
+        })
+        .then((res) => siteInfoResponse = res.body)
         .then(() =>  common.factory.createProducer())
         .then((result) => producer = result);
     });
@@ -666,6 +681,17 @@ describe('RESTBase update rules', function() {
 
     it('Should rerender image usages on file update', () => {
         const mwAPI = nock('https://en.wikipedia.org')
+        .get('/api/rest_v1/page/html/File%3APchelolo%2FTest.jpg/112233')
+        .query({redirect: false})
+        .reply(200)
+        .post('/w/api.php', {
+            formatversion: '2',
+            format: "json",
+            action: "query",
+            meta: "siteinfo",
+            siprop: "general|namespaces|namespacealiases"
+        })
+        .reply(200, siteInfoResponse)
         .post('/w/api.php', {
             format: 'json',
             action: 'query',
@@ -725,7 +751,8 @@ describe('RESTBase update rules', function() {
                     domain: 'en.wikipedia.org'
                 },
                 page_title: 'File:Pchelolo/Test.jpg',
-                rev_parent_id: 12345 // Needed to avoid backlinks updates firing and interfering
+                rev_parent_id: 12345, // Needed to avoid backlinks updates firing and interfering
+                rev_id: 112233
             }))))
         .then(() => common.checkAPIDone(mwAPI, 50))
         .finally(() => nock.cleanAll());
@@ -733,6 +760,9 @@ describe('RESTBase update rules', function() {
 
     it('Should rerender transclusions on page update', () => {
         const mwAPI = nock('https://en.wikipedia.org')
+        .get('/api/rest_v1/page/html/Test_Page/112233')
+        .query({redirect: false})
+        .reply(200)
         .post('/w/api.php', {
             format: 'json',
             formatversion: '2',
@@ -804,7 +834,8 @@ describe('RESTBase update rules', function() {
                     domain: 'en.wikipedia.org'
                 },
                 page_title: 'Test_Page',
-                rev_parent_id: 12345 // Needed to avoid backlinks updates firing and interfering
+                rev_parent_id: 12345, // Needed to avoid backlinks updates firing and interfering
+                rev_id: 112233
             }))))
         .then(() => common.checkAPIDone(mwAPI, 50))
         .finally(() => nock.cleanAll());

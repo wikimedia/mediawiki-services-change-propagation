@@ -19,7 +19,6 @@ describe('Basic rule management', function() {
     let producer;
     let retrySchema;
     let errorSchema;
-    let siteInfoResponse;
 
     before(function() {
         // Setting up might tike some tome, so disable the timeout
@@ -30,18 +29,6 @@ describe('Basic rule management', function() {
         .then((res) => retrySchema = yaml.safeLoad(res.body))
         .then(() => preq.get({ uri: 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/error/1.yaml' }))
         .then((res) => errorSchema = yaml.safeLoad(res.body))
-        .then(() => {
-            preq.post({
-                uri: 'https://en.wikipedia.org/w/api.php',
-                body: {
-                    format: 'json',
-                    action: 'query',
-                    meta: 'siteinfo',
-                    siprop: 'general|namespaces|namespacealiases'
-                }
-            });
-        })
-        .then((res) => siteInfoResponse = res)
         .then(common.factory.createProducer.bind(common.factory))
         .then((result) => producer = result);
     });
