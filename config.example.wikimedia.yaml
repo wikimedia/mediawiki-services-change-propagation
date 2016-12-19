@@ -178,22 +178,29 @@ spec: &spec
                   status:
                     - '5xx'
                     - 404 # Sometimes occasional 404s happen because of the mysql replication lag, so retry
+                # Test-only. We use undefined rev_parent_id to test backlinks so we
+                # don't want transclusions to interfere with backlinks test
                 match_not:
+                  - rev_parent_id: undefined
                   - meta:
                       domain: /\.wikidata\.org$/
                     page_namespace: 0
                   - meta:
                       domain: /\.wikidata\.org$/
                     page_namespace: 120
+                # end of test-only config
                 exec:
-                  method: get
-                  uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
-                  headers:
-                    cache-control: no-cache
-                    x-restbase-parentrevision: '{{message.rev_parent_id}}'
-                    if-unmodified-since: '{{date(message.meta.dt)}}'
-                  query:
-                    redirect: false
+                  - method: get
+                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                    headers:
+                      cache-control: no-cache
+                      x-restbase-parentrevision: '{{message.rev_parent_id}}'
+                      if-unmodified-since: '{{date(message.meta.dt)}}'
+                    query:
+                      redirect: false
+                  - method: post
+                    uri: '/sys/links/transcludes/{message.page_title}'
+                    body: '{{globals.message}}'
 
               revision_visibility_change:
                 topic: mediawiki.revision-visibility-change
@@ -297,24 +304,6 @@ spec: &spec
                       cache-control: no-cache
                     query:
                       redirect: false
-
-              transclusion_update:
-                topic: mediawiki.revision-create
-                # Test-only. We use undefined rev_parent_id to test backlinks so we
-                # don't want transclusions to interfere with backlinks test
-                match_not:
-                  - rev_parent_id: undefined
-                  - meta:
-                      domain: /\.wikidata\.org$/
-                    page_namespace: 0
-                  - meta:
-                      domain: /\.wikidata\.org$/
-                    page_namespace: 120
-                # end of test-only config
-                exec:
-                  method: post
-                  uri: '/sys/links/transcludes/{message.page_title}'
-                  body: '{{globals.message}}'
 
               on_transclusion_update:
                 topic: change-prop.transcludes.resource-change
