@@ -533,6 +533,70 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should update RESTBase summary and mobile-sections on wikidata description revert', () => {
+        const wikidataAPI = nock('https://www.wikidata.org')
+        .post('/w/api.php', {
+            format: 'json',
+            formatversion: '2',
+            action: 'wbgetentities',
+            ids: 'Q1',
+            props: 'sitelinks/urls',
+            normalize: 'true'
+        })
+        .reply(200, {
+            "success": 1,
+            "entities": {
+                "Q1": {
+                    "type": "item",
+                    "id": "Q1",
+                    "sitelinks": {
+                        "enwiki": {
+                            "site": "ruwiki",
+                            "title": "Пётр",
+                            "badges": [],
+                            "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80"
+                        }
+                    }
+                }
+            }
+        });
+
+        const restbase = nock('https://ru.wikipedia.org', {
+            reqheaders: {
+                'cache-control': 'no-cache',
+                'x-request-id': common.SAMPLE_REQUEST_ID,
+                'user-agent': 'SampleChangePropInstance',
+                'x-triggered-by': 'mediawiki.revision-create:/rev/uri,change-prop.wikidata.resource-change:https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
+            }
+        })
+        .get('/api/rest_v1/page/summary/%D0%9F%D1%91%D1%82%D1%80')
+        .query({ redirect: false })
+        .reply(200, { })
+        .get('/api/rest_v1/page/mobile-sections/%D0%9F%D1%91%D1%82%D1%80')
+        .query({ redirect: false })
+        .reply(200, { });
+
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
+            Buffer.from(JSON.stringify({
+                meta: {
+                    topic: 'mediawiki.revision-create',
+                    schema_uri: 'revision-create/1',
+                    uri: '/rev/uri',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'www.wikidata.org'
+                },
+                page_title: 'Q1',
+                page_namespace: 0,
+                comment: "/* undo */ Undo revision 440223057 by Mhollo"
+            }))))
+        .delay(common.REQUEST_CHECK_DELAY)
+        .then(() => common.checkAPIDone(wikidataAPI))
+        .then(() => common.checkAPIDone(restbase))
+        .finally(() => nock.cleanAll());
+    });
+
     it('Should update RESTBase summary and mobile-sections on wikidata undelete', () => {
         const wikidataAPI = nock('https://www.wikidata.org')
         .post('/w/api.php', {
