@@ -366,17 +366,6 @@ spec: &spec
                         precache: true
                   - match:
                       meta:
-                        domain: en.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/enwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
                         domain: en.wiktionary.org
                       performer:
                         user_is_bot: false
@@ -406,17 +395,6 @@ spec: &spec
                       uri: 'https://ores.wikimedia.org/v2/scores/etwiki/'
                       query:
                         models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: fa.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/fawiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
                         revids: '{{message.rev_id}}'
                         precache: true
                   - match:
@@ -476,61 +454,6 @@ spec: &spec
                         precache: true
                   - match:
                       meta:
-                        domain: nl.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/nlwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: pl.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/plwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: pt.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/ptwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: ru.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/ruwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: tr.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/trwiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
                         domain: uk.wikipedia.org
                       performer:
                         user_is_bot: false
@@ -549,18 +472,6 @@ spec: &spec
                       uri: 'https://ores.wikimedia.org/v2/scores/viwiki/'
                       query:
                         models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                  - match:
-                      meta:
-                        domain: www.wikidata.org
-                      page_namespace: 0
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/wikidatawiki/'
-                      query:
-                        models: 'reverted|damaging|goodfaith'
                         revids: '{{message.rev_id}}'
                         precache: true
 
