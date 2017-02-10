@@ -443,7 +443,8 @@ describe('RESTBase update rules', function() {
         .query({
             models: 'reverted',
             revids: 1234,
-            precache: true })
+            precache: true,
+            format: 'json' })
         .reply(200, { });
 
         return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
