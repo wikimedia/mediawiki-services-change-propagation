@@ -353,6 +353,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: cs.wikipedia.org
@@ -364,6 +365,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: en.wiktionary.org
@@ -375,6 +377,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: es.wikipedia.org
@@ -386,6 +389,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: et.wikipedia.org
@@ -397,6 +401,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: fr.wikipedia.org
@@ -408,6 +413,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: he.wikipedia.org
@@ -419,6 +425,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: hu.wikipedia.org
@@ -430,6 +437,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: id.wikipedia.org
@@ -441,6 +449,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: it.wikipedia.org
@@ -452,6 +461,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: uk.wikipedia.org
@@ -463,6 +473,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
                   - match:
                       meta:
                         domain: vi.wikipedia.org
@@ -474,6 +485,7 @@ spec: &spec
                         models: 'reverted'
                         revids: '{{message.rev_id}}'
                         precache: true
+                        format: 'json'
 
               # This is not yet used in production
               process_redlinks:
