@@ -696,6 +696,8 @@ spec: &spec
                           redirect: false
 
 num_workers: 0
+dns_cache:
+  ttl: 5
 logging:
   name: changeprop
   level: info
