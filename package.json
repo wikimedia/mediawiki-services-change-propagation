@@ -39,7 +39,7 @@
     "cassandra-uuid": "^0.0.2",
     "extend": "^3.0.0",
     "hyperswitch": "^0.8.6",
-    "service-runner": "^2.2.0",
+    "service-runner": "^2.2.1",
     "json-stable-stringify": "^1.0.1",
     "htcp-purge": "^0.2.2",
     "mediawiki-title": "^0.5.6",

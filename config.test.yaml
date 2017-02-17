@@ -79,8 +79,6 @@ spec: &spec
                       triggered_by: '{{message.meta.topic}}:{{message.meta.uri}}'
 
 num_workers: 0
-dns_cache:
-  ttl: 1000
 logging:
   name: changeprop
   level: info
