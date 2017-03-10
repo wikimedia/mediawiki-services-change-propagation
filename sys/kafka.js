@@ -51,6 +51,11 @@ class Kafka {
     }
 
     produce(hyper, req) {
+        if (this.options.test_mode) {
+            this.log('trace/produce', 'Running in TEST MODE; Production disabled');
+            return { status: 201 };
+        }
+
         const messages = req.body;
         if (!Array.isArray(messages) || !messages.length) {
             throw new HTTPError({
