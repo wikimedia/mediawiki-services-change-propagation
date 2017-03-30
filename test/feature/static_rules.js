@@ -327,5 +327,28 @@ describe('Basic rule management', function() {
         });
     });
 
+    it('Sampling should only propagate a stable subset', () => {
+        const service = nock('http://mock.com/')
+        .get('/en.wikipedia.org/N0ryO6Lrp')
+        .reply(200, {})
+        .get('/en.wikipedia.org/rpiwQuPlA')
+        .reply(200, {});
+
+        return P.try(() => producer.produce('test_dc.sample_test_rule', 0,
+            Buffer.from(JSON.stringify(
+                // en.wikipedia.org-N0ryO6Lrp hashes to lower 20% of hashspace (should pass)
+                common.eventWithProperties('test_dc.sample_test_rule', { page_title: 'N0ryO6Lrp', message: 'sampled' })
+            )))
+        )
+        .then(() => producer.produce('test_dc.sample_test_rule', 0,
+            Buffer.from(JSON.stringify(
+                // en.wikipedia.org-rpiwQuPlA hashes to upper 80% of hashspace (should fail)
+                common.eventWithProperties('test_dc.sample_test_rule', { page_title: 'rpiwQuPlA', message: 'sampled' })
+            )))
+        )
+        .then(() => common.checkPendingMocks(service, 1))
+        .finally(() => nock.cleanAll());
+    });
+
     after(() => changeProp.stop());
 });

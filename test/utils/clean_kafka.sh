@@ -12,6 +12,7 @@ if [ "x$JENKINS_URL" = "x"  ] || [ "$CI" = "true" ]; then
 fi
 
 createTopic "test_dc.simple_test_rule"
+createTopic "test_dc.sample_test_rule"
 createTopic "test_dc.change-prop.retry.simple_test_rule"
 createTopic "test_dc.kafka_producing_rule"
 createTopic "test_dc.change-prop.retry.kafka_producing_rule"

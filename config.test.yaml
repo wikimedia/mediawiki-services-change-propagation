@@ -78,6 +78,19 @@ spec: &spec
                       message: 'test'
                       triggered_by: '{{message.meta.topic}}:{{message.meta.uri}}'
 
+              sample_testing_rule:
+                topic: sample_test_rule
+                sample:
+                  rate: 0.2
+                  hash_template: '{{message.meta.domain}}-{{message.page_title}}'
+                match:
+                  meta:
+                    uri: '/sample/uri'
+                  message: 'sampled'
+                exec:
+                  method: get
+                  uri: 'http://mock.com/{{message.meta.domain}}/{{message.page_title}}'
+
 num_workers: 0
 logging:
   name: changeprop
