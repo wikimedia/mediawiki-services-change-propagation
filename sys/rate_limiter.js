@@ -98,7 +98,10 @@ module.exports = (options) => {
                         operationId: 'incrementAndCheck'
                     },
                     get: {
-                        operationId: 'check'
+                        operationId: 'check',
+                        // XXX: Ugly hack below so that the automatic monitoring
+                        // script does not complain about it correctly returning 403
+                        'x-monitor': false
                     }
                 }
             }
