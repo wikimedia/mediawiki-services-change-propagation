@@ -71,6 +71,8 @@ spec: &spec
                 retry_on:
                   status:
                     - '5xx'
+                limiters:
+                  blacklist: 'summary:{message.meta.uri}'
                 cases: # Non wiktionary domains - rerender summary
                   - match:
                       meta:
@@ -114,6 +116,8 @@ spec: &spec
                 retry_on:
                   status:
                     - '5xx'
+                limiters:
+                  blacklist: 'mobile:{message.meta.uri}'
                 match:
                   meta:
                     uri: '/^(?<proto>https?):\/\/[^\/]+\/api\/rest_v1\/page\/html\/(?<title>[^/]+)$/'
@@ -152,6 +156,8 @@ spec: &spec
                     uri: '/^(?<proto>https?):\/\/[^\/]+\/wiki\/(?<title>.+)$/'
                   tags:
                     - purge
+                limiters:
+                  blacklist: 'html:{message.meta.uri}'
                 exec:
                   method: get
                   # This even comes directly from MediaWiki, so title is encoded in MW-specific way.
@@ -169,6 +175,8 @@ spec: &spec
                   status:
                     - 403 # Ignoring 403 since some of the pages with high number of null_edit events are blacklisted
                     - 412
+                limiters:
+                  blacklist: 'html:{message.meta.uri}'
                 match:
                   meta:
                     uri: '/^(?<proto>https?):\/\/[^\/]+\/wiki\/(?<title>.+)$/'
@@ -188,7 +196,7 @@ spec: &spec
               page_edit:
                 topic: mediawiki.revision-create
                 limiters:
-                  blacklist: '{message.meta.uri}'
+                  blacklist: 'html:{message.meta.uri}'
                 retry_on:
                   status:
                     - '5xx'
@@ -331,7 +339,7 @@ spec: &spec
               on_transclusion_update:
                 topic: change-prop.transcludes.resource-change
                 limiters:
-                  blacklist: '{message.meta.uri}'
+                  blacklist: 'html:{message.meta.uri}'
                 cases:
                   - match:
                       meta:
@@ -376,7 +384,7 @@ spec: &spec
               on_backlinks_update:
                 topic: change-prop.backlinks.resource-change
                 limiters:
-                  blacklist: '{message.meta.uri}'
+                  blacklist: 'html:{message.meta.uri}'
                 cases:
                   - match:
                       meta:
