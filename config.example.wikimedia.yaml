@@ -13,7 +13,7 @@ spec: &spec
       x-modules:
         - path: sys/rate_limiter.js
           options:
-            redis:
+            redis: &redis_config
               host: localhost
               port: 6379
 
@@ -28,6 +28,11 @@ spec: &spec
                 # errors per hour
                 - interval: 3600
                   limit: 10
+    /sys/dedupe:
+      x-modules:
+        - path: sys/deduplicator.js
+          options:
+            redis: *redis_config
     /sys/purge:
       x-modules:
         - path: sys/purge.js
