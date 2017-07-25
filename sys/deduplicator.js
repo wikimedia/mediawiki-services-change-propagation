@@ -30,7 +30,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
         // Expire the key or renew the expiration timestamp if the key existed
         .tap(() => this._redis.expireAsync(messageKey, this._expire_timeout))
         // If that key already existed - that means it's a duplicate
-        .then((setResult) => setResult ? NOT_DUPLICATE : DUPLICATE)
+        .then((setResult) => { return setResult ? NOT_DUPLICATE : DUPLICATE; })
         .then((individualDeduplicated) => {
             if (individualDeduplicated.body || !message.root_event) {
                 // If the message was individually deduped or if it has no root event info,
