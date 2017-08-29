@@ -1,35 +1,17 @@
 "use strict";
 
 const Limiter = require('ratelimit.js').RateLimit;
-const redis = require('redis');
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
+const mixins = require('../lib/mixins');
 
-class RateLimiter {
+class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
     constructor(options) {
+        super(options);
+
         this._options = options;
         this._log = this._options.log || (() => {});
-
-        if (!this._options.redis) {
-            throw new Error('Redis options not provided to the rate_limiter');
-        }
-
-        if (!(this._options.redis.host && this._options.redis.port)
-                && !this._options.redis.path) {
-            throw new Error('Redis host:port or unix socket path must be specified');
-        }
-
-        this._options.redis = Object.assign(this._options.redis, {
-            no_ready_check: true // Prevents sending unsupported info command to nutcracker
-        });
-        this._client = redis.createClient(this._options.redis);
-        this._client.on('error', (e) => {
-            // If we can't connect to redis - don't worry and don't fail,
-            // just log it and ignore.
-            this._options.log('error/redis', e);
-        });
-        HyperSwitch.lifecycle.on('close', () => this._client.quit());
 
         this._LIMITERS = new Map();
         Object.keys(this._options.limiters).forEach((type) => {
@@ -45,7 +27,7 @@ class RateLimiter {
                 }
             });
 
-            this._LIMITERS.set(type, new Limiter(this._client, limiterOpts,
+            this._LIMITERS.set(type, new Limiter(this._redis, limiterOpts,
                 { prefix: `CPLimiter_${type}` }));
         });
     }
