@@ -47,6 +47,4 @@ createTopic "test_dc.change-prop.retry.change-prop.wikidata.resource-change"
 wait
 sleep 5
 
-if ! [[ `redis-cli --raw keys "CP*" | xargs redis-cli del` ]]; then
-    echo "WARNING: Couldn't clear redis"
-fi
+redis-cli --raw keys "CP*" | xargs redis-cli del
