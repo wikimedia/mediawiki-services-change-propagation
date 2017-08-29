@@ -26,7 +26,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
 
         // First, look at the individual event duplication
         const messageKey = `CP_dedupe_${name}_${message.meta.id}`;
-        return this._redis.setnxAsync(`CP_dedupe_${name}_${message.meta.id}`, '1')
+        return this._redis.setnxAsync(messageKey, '1')
         // Expire the key or renew the expiration timestamp if the key existed
         .tap(() => this._redis.expireAsync(messageKey, this._expire_timeout))
         // If that key already existed - that means it's a duplicate
