@@ -1,6 +1,7 @@
 "use strict";
 
 const mixins = require('../lib/mixins');
+const utils = require('../lib/utils');
 
 const DUPLICATE = { status: 200, body: true };
 const NOT_DUPLICATE = { status: 200, body: false };
@@ -30,7 +31,17 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
         // Expire the key or renew the expiration timestamp if the key existed
         .tap(() => this._redis.expireAsync(messageKey, this._expire_timeout))
         // If that key already existed - that means it's a duplicate
-        .then((setResult) => { return setResult ? NOT_DUPLICATE : DUPLICATE; })
+        .then((setResult) => {
+            if (setResult) {
+                return NOT_DUPLICATE;
+            }
+            hyper.metrics.increment(`${name}_dedupe`);
+            hyper.log('trace/dedupe', {
+                message: 'Event was deduplicated based on id',
+                event_str: utils.stringify(message),
+            });
+            return DUPLICATE;
+        })
         .then((individualDeduplicated) => {
             if (individualDeduplicated.body || !message.root_event) {
                 // If the message was individually deduped or if it has no root event info,
@@ -43,6 +54,13 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
             .then((oldEventTimestamp) => {
                 if (oldEventTimestamp
                         && new Date(oldEventTimestamp) > new Date(message.root_event.dt)) {
+                    hyper.metrics.increment(`${name}_dedupe`);
+                    hyper.log('trace/dedupe', {
+                        message: 'Event was deduplicated based on root event',
+                        event_str: utils.stringify(message),
+                        signature: message.root_event.signature,
+                        newer_dt: oldEventTimestamp
+                    });
                     return DUPLICATE;
                 }
                 return this._redis.setAsync(rootEventKey, message.root_event.dt)
