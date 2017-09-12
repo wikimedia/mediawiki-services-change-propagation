@@ -10,9 +10,10 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
     constructor(options) {
         super(options);
 
-        this._options = options;
+        this._options = options || {};
         this._log = this._options.log || (() => {});
         this._expire_timeout = options.window || 86400;
+        this._prefix = this._options.redis_prefix || 'CP';
     }
 
     /**
@@ -26,7 +27,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
         const message = req.body;
 
         // First, look at the individual event duplication
-        const messageKey = `CP_dedupe_${name}_${message.meta.id}`;
+        const messageKey = `${this._prefix}_dedupe_${name}_${message.meta.id}`;
         return this._redis.setnxAsync(messageKey, '1')
         // Expire the key or renew the expiration timestamp if the key existed
         .tap(() => this._redis.expireAsync(messageKey, Math.ceil(this._expire_timeout / 24)))
@@ -49,7 +50,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
                 return individualDeduplicated;
             }
 
-            const rootEventKey = `CP_dedupe_${name}_${message.root_event.signature}`;
+            const rootEventKey = `${this._prefix}_dedupe_${name}_${message.root_event.signature}`;
             return this._redis.getAsync(rootEventKey)
             .then((oldEventTimestamp) => {
                 if (oldEventTimestamp
