@@ -1,0 +1,57 @@
+spec: &spec
+  x-sub-request-filters:
+    - type: default
+      name: http
+      options:
+        allow:
+          - pattern: /^https?:\/\//
+            forward_headers:
+              user-agent: true
+  title: The Change Propagation root
+  paths:
+    /sys/dedupe:
+      x-modules:
+        - path: sys/deduplicator.js
+          options:
+            redis_prefix: CPJQ
+            redis:
+              host: localhost
+              port: 6379
+    /sys/queue:
+      x-modules:
+        - path: sys/kafka.js
+          options:
+            metadata_broker_list: 127.0.0.1:9092
+            dc_name: test_dc
+            startup_delay: 0
+            consumer:
+              # These options should not be copied to puppet config.
+              # We're using this config for testing, so need to configure
+              # for minimal latency
+              fetch.wait.max.ms: "1"
+              fetch.min.bytes: "1"
+              queue.buffering.max.ms: "1"
+            producer:
+              queue.buffering.max.messages: "10"
+            concurrency: 250
+            templates:
+              updateBetaFeaturesUserCounts:
+                topic: 'mediawiki.job.updateBetaFeaturesUserCounts'
+                exec:
+                  method: post
+                  uri: 'http://jobrunner.wikipedia.org/rpc/RunSingleJob.php'
+                  headers:
+                    content-type: application/json
+                  body: '{{globals.message}}'
+
+num_workers: 0
+logging:
+  name: changeprop
+  level: info
+services:
+  - name: changeprop
+    module: hyperswitch
+    conf:
+      port: 7272
+      user_agent: SampleChangePropInstance
+      spec: *spec
