@@ -25,10 +25,8 @@ describe('JobQueue rules', function () {
     ].forEach((jobType) => {
         it(`Should propagate ${jobType} job`, () => {
             const service = nock('http://jobrunner.wikipedia.org')
-            .log(console.log)
             .post('/rpc/RunSingleJob.php', common.jobs[jobType]).reply({});
-
-            console.log('prod');
+            
             return producer.produce(`test_dc.mediawiki.job.${jobType}`, 0,
                 Buffer.from(JSON.stringify(common.jobs[jobType])))
             .then(() => common.checkAPIDone(service))
