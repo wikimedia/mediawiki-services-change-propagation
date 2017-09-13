@@ -117,4 +117,32 @@ common.factory = new KafkaFactory({
     }
 });
 
+
+// Sample JobQueue events
+
+common.jobs = {
+    updateBetaFeaturesUserCounts: {
+        "database": "enwiki",
+        "meta": {
+            "domain": "en.wikipedia.org",
+            "dt": "2017-09-05T02:08:52+00:00",
+            "id": "29e4bc47-91df-11e7-83b0-14187761316a",
+            "request_id": "d402f64b-7343-4d92-8eea-957eca4fd308",
+            "schema_uri": "mediawiki/job/1",
+            "topic": "mediawiki.job.updateBetaFeaturesUserCounts",
+            "uri": "https://en.wikipedia.org/wiki/Main_Page"
+        },
+        "page_namespace": 0,
+        "page_title": "Main_Page",
+        "params": {
+            "prefs": [
+                "visualeditor-newwikitext"
+            ],
+            "requestId": "Wa4HNApAAEMAAHzG8r4AAAAE"
+        },
+        "sha1": "b63122a8f7ae2ff8578c76eb215e08cbf6560e8f",
+        "type": "updateBetaFeaturesUserCounts"
+    }
+};
+
 module.exports = common;
