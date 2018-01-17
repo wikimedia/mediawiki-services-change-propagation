@@ -44,7 +44,7 @@
     "htcp-purge": "^0.2.2",
     "mediawiki-title": "^0.6.3",
     "murmur-32": "^0.1.0",
-    "node-rdkafka": "^1.0.6",
+    "node-rdkafka": "^2.2.1",
     "node-rdkafka-statsd": "^0.1.0",
     "ratelimit.js": "^1.8.0",
     "redis": "^2.7.1"
@@ -82,7 +82,7 @@
         {
           "repo_url": "https://apt.wikimedia.org/wikimedia",
           "release": "jessie-wikimedia",
-          "pool": "backports",
+          "pool": "main",
           "packages": [
             "librdkafka-dev"
           ]
