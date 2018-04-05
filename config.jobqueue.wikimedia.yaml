@@ -34,9 +34,12 @@ spec: &spec
             producer:
               queue.buffering.max.messages: "10"
             concurrency: 250
+            reenqueue_delay: 5
             templates:
-              updateBetaFeaturesUserCounts:
-                topic: 'mediawiki.job.updateBetaFeaturesUserCounts'
+              normal_job_rule:
+                topics:
+                  - 'mediawiki.job.updateBetaFeaturesUserCounts'
+                  - 'mediawiki.job.cdnPurge'
                 exec:
                   method: post
                   uri: 'http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob'

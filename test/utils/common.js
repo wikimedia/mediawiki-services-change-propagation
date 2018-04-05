@@ -213,6 +213,33 @@ common.jobs = {
             "sha1": "9dfd2116c8c597c6b377a9100c670e21de20bf70",
             "type": "refreshLinks"
         }
+    },
+    get cdnPurge() {
+        const releaseTimestamp = Date.now() / 1000 + 3;
+        return {
+            "database": "commonswiki",
+            "delay_until": `${releaseTimestamp}`,
+            "mediawiki_signature": "e6ff5af8f89ac6441c6ad7b34bdcf44fb1746c1ef6e07d8b9653c75d0005193e",
+            "meta": {
+                "domain": "commons.wikimedia.org",
+                "dt": new Date().toISOString(),
+                "id": uuid.now().toString(),
+                "request_id": common.randomString(10),
+                "schema_uri": "mediawiki/job/1",
+                "topic": "mediawiki.job.cdnPurge",
+                "uri": "https://commons.wikimedia.org/wiki/Special:Badtitle/CdnCacheUpdate"
+            },
+            "page_namespace": -1,
+            "page_title": "Special:Badtitle/CdnCacheUpdate",
+            "params": {
+                "jobReleaseTimestamp": releaseTimestamp,
+                "requestId": common.randomString(10),
+                "urls": [
+                    "https://commons.wikimedia.org/wiki/Main_Page"
+                ]
+            },
+            "type": "cdnPurge"
+        }
     }
 };
 
