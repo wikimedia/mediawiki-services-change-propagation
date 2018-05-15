@@ -474,8 +474,12 @@ describe('RESTBase update rules', function() {
             }
         });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
+        return common.factory.createConsumer(
+            'changeprop-test-consumer-revision-score',
+            [ 'test_dc.mediawiki.revision-score' ])
+        .delay(1000)
+        .then((consumer) => {
+            const originalMessage = {
                 meta: {
                     topic: 'mediawiki.revision-create',
                     schema_uri: 'revision-create/1',
@@ -493,9 +497,41 @@ describe('RESTBase update rules', function() {
                 performer: {
                     user_is_bot: false
                 }
-            }))))
-        .then(() => common.checkAPIDone(oresService))
-        .finally(() => nock.cleanAll());
+            };
+            return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
+                Buffer.from(JSON.stringify(originalMessage))))
+            .then(() => common.checkAPIDone(oresService))
+            .finally(() => nock.cleanAll())
+            .then(() => {
+                function check() {
+                    return consumer.consumeAsync(1)
+                    .catch(check)
+                    .then((messages) => {
+                        if (!messages.length) {
+                            return P.delay(1000).then(check);
+                        }
+
+                        const message = JSON.parse(messages[0].value.toString());
+                        assert.deepEqual(message.meta.topic, 'mediawiki.revision-score');
+                        assert.deepEqual(message.meta.domain, originalMessage.meta.domain);
+                        assert.deepEqual(message.meta.uri, originalMessage.meta.uri);
+                        assert.deepEqual(message.meta.request_id, originalMessage.meta.request_id);
+                        assert.deepEqual(message.database, originalMessage.database);
+                        assert.deepEqual(message.page_title, originalMessage.page_title);
+                        assert.deepEqual(message.scores, [{
+                            model_name: 'damaging',
+                            model_version: '0.4.0',
+                            prediction: false,
+                            probability: {
+                                "false": 0.6166652256695712,
+                                "true": 0.38333477433042884
+                            }
+                        }]);
+                    });
+                }
+                return check().finally(() => consumer.disconnect());
+            });
+        });
     });
 
     it('Should update RESTBase summary and mobile-sections on wikidata description change', () => {

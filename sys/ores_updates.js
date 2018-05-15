@@ -19,6 +19,9 @@ class OresProcessor {
         };
         return hyper.request(this._ores_precache_template.expand(context))
         .then((res) => {
+            if (!req.query.postevent) {
+                return res;
+            }
             const newMessage = {
                 meta: {
                     topic: 'mediawiki.revision-score',
@@ -41,8 +44,8 @@ class OresProcessor {
                 newMessage.scores.push({
                     model_name: modelName,
                     model_version: domainScores.models[modelName].version,
-                    prediction: revScores[modelName].prediction,
-                    probability: revScores[modelName].probability
+                    prediction: revScores[modelName].score.prediction,
+                    probability: revScores[modelName].score.probability
                 });
             });
             return hyper.post({

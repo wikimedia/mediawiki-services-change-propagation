@@ -195,7 +195,7 @@ describe('Basic rule management', function() {
                         }
                     });
                 }
-                return check();
+                return check().finally(() => retryConsumer.disconnect());
             });
         });
     });
@@ -323,8 +323,7 @@ describe('Basic rule management', function() {
                         }
                     });
                 }
-
-                return check();
+                return check().finally(() => errorConsumer.disconnect());
             });
         });
     });
