@@ -484,7 +484,9 @@ spec: &spec
                     - 503
                 exec:
                   method: post
-                  uri: '/sys/ores/?postevent=true'
+                  uri: '/sys/ores/'
+                  query:
+                    postevent: true
                   body: '{{globals.message}}'
 
               wikidata_description_on_edit:
