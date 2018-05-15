@@ -450,13 +450,29 @@ describe('RESTBase update rules', function() {
 
     it('Should update ORES on revision-create', () => {
         const oresService = nock('https://ores.wikimedia.org')
-        .get('/v2/scores/eswiki/')
-        .query({
-            models: 'reverted',
-            revids: 1234,
-            precache: true,
-            format: 'json' })
-        .reply(200, { });
+        .post('/v3/precache')
+        .reply(200, {
+            "enwiki": {
+                "models": {
+                    "damaging": {
+                        "version": "0.4.0"
+                    }
+                },
+                "scores": {
+                    "1234": {
+                        "damaging": {
+                            "score": {
+                                "prediction": false,
+                                "probability": {
+                                    "false": 0.6166652256695712,
+                                    "true": 0.38333477433042884
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
         return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
             Buffer.from(JSON.stringify({
@@ -467,8 +483,9 @@ describe('RESTBase update rules', function() {
                     request_id: common.SAMPLE_REQUEST_ID,
                     id: uuid.now(),
                     dt: new Date(1000).toISOString(),
-                    domain: 'es.wikipedia.org'
+                    domain: 'en.wikipedia.org'
                 },
+                database: 'enwiki',
                 page_title: 'TestPage',
                 rev_id: 1234,
                 rev_timestamp: new Date().toISOString(),
