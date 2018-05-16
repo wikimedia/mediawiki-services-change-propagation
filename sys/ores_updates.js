@@ -41,12 +41,12 @@ class OresProcessor {
             const domainScores = res.body[newMessage.database];
             const revScores = domainScores.scores[`${newMessage.rev_id}`];
             Object.keys(revScores).forEach((modelName) => {
-                newMessage.scores.push({
+                const score = {
                     model_name: modelName,
                     model_version: domainScores.models[modelName].version,
-                    prediction: revScores[modelName].score.prediction,
-                    probability: revScores[modelName].score.probability
-                });
+                };
+                Object.assign(score, revScores[modelName].score);
+                newMessage.scores.push(score);
             });
             return hyper.post({
                 uri: '/sys/queue/events',
