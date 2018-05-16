@@ -1,23 +1,25 @@
 "use strict";
 
-const HyperSwitch = require('hyperswitch');
-const Template = HyperSwitch.Template;
-
 class OresProcessor {
     constructor(options) {
         this._options = options;
-        if (!options.templates.ores_precache_template) {
-            throw new Error('OreProcessor is miconfigured. ores_precache_template is required');
+        if (!options.ores_precache_uri) {
+            throw new Error('OreProcessor is miconfigured. ores_precache_uri is required');
         }
-        this._ores_precache_template = new Template(options.templates.ores_precache_template);
+        if (!options.eventbus_uri) {
+            throw new Error('OreProcessor is miconfigured. eventbus_uri is required');
+        }
     }
 
     process(hyper, req) {
-        const context = {
-            request: req,
-            message: req.body
-        };
-        return hyper.request(this._ores_precache_template.expand(context))
+        const message = req.body;
+        return hyper.post({
+            uri: this._options.ores_precache_uri,
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: message
+        })
         .then((res) => {
             if (!req.query.postevent) {
                 return res;
@@ -25,17 +27,17 @@ class OresProcessor {
             const newMessage = {
                 meta: {
                     topic: 'mediawiki.revision-score',
-                    uri: context.message.meta.uri,
-                    request_id: context.message.meta.request_id,
-                    domain: context.message.meta.domain,
+                    uri: message.meta.uri,
+                    request_id: message.meta.request_id,
+                    domain: message.meta.domain,
                 },
-                database: context.message.database,
-                page_id: context.message.page_id,
-                page_title: context.message.page_title,
-                page_namespace: context.message.page_namespace,
-                rev_id: context.message.rev_id,
-                rev_parent_id: context.message.rev_parent_id,
-                rev_timestamp: context.message.rev_timestamp,
+                database: message.database,
+                page_id: message.page_id,
+                page_title: message.page_title,
+                page_namespace: message.page_namespace,
+                rev_id: message.rev_id,
+                rev_parent_id: message.rev_parent_id,
+                rev_timestamp: message.rev_timestamp,
                 scores: []
             };
             const domainScores = res.body[newMessage.database];
@@ -49,7 +51,10 @@ class OresProcessor {
                 newMessage.scores.push(score);
             });
             return hyper.post({
-                uri: '/sys/queue/events',
+                uri: this._options.eventbus_uri,
+                headers: {
+                    'content-type': 'application/json'
+                },
                 body: [ newMessage ]
             });
         });

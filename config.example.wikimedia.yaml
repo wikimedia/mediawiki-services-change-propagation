@@ -13,13 +13,8 @@ spec: &spec
       x-modules:
         - path: sys/ores_updates.js
           options:
-            templates:
-              ores_precache_template:
-                method: post
-                uri: 'https://ores.wikimedia.org/v3/precache'
-                headers:
-                  content-type: application/json
-                body: '{{globals.message}}'
+            ores_precache_uri: 'https://ores.wikimedia.org/v3/precache'
+            eventbus_uri: 'https://eventbus.stubfortests.org/v1/events'
     /sys/limit:
       x-modules:
         - path: sys/rate_limiter.js
