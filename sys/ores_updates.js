@@ -1,10 +1,12 @@
 "use strict";
 
+const P = require('bluebird');
+
 class OresProcessor {
     constructor(options) {
         this._options = options;
-        if (!options.ores_precache_uri) {
-            throw new Error('OreProcessor is miconfigured. ores_precache_uri is required');
+        if (!options.ores_precache_uris || !Array.isArray(options.ores_precache_uris)) {
+            throw new Error('OreProcessor is miconfigured. ores_precache_uris is required');
         }
         if (!options.eventbus_uri) {
             throw new Error('OreProcessor is miconfigured. eventbus_uri is required');
@@ -13,14 +15,14 @@ class OresProcessor {
 
     process(hyper, req) {
         const message = req.body;
-        return hyper.post({
-            uri: this._options.ores_precache_uri,
+        return P.all(this._options.ores_precache_uris.map(uri => hyper.post({
+            uri,
             headers: {
                 'content-type': 'application/json'
             },
             body: message
-        })
-        .then((res) => {
+        })))
+        .spread((res) => {
             if (!req.query.postevent) {
                 return res;
             }

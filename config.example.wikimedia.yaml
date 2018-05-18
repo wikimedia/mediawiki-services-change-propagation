@@ -13,7 +13,8 @@ spec: &spec
       x-modules:
         - path: sys/ores_updates.js
           options:
-            ores_precache_uri: 'https://ores.wikimedia.org/v3/precache'
+            ores_precache_uris:
+              - 'https://ores.wikimedia.org/v3/precache'
             eventbus_uri: 'https://eventbus.stubfortests.org/v1/events'
     /sys/limit:
       x-modules:
