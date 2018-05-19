@@ -22,9 +22,11 @@ describe('JobQueue rules', function() {
     });
 
     [
-        'updateBetaFeaturesUserCounts'
+        'updateBetaFeaturesUserCounts',
+        'cdnPurge'
     ].forEach((jobType) => {
-        it(`Should propagate ${jobType} job`, () => {
+        it(`Should propagate ${jobType} job`, function() {
+            this.timeout(10000);
             const sampleEvent = common.jobs[jobType];
             const service = nock('http://jobrunner.wikipedia.org', {
                 reqheaders: {
@@ -146,6 +148,24 @@ describe('JobQueue rules', function() {
         .then(() => common.checkPendingMocks(service, 1))
         .then(() => producer.produce('test_dc.mediawiki.job.htmlCacheUpdate', 0, Buffer.from(JSON.stringify(secondEvent))))
         .then(() => common.checkPendingMocks(service, 1))
+        .finally(() => nock.cleanAll());
+    });
+
+    it('Should support delayed jobs with re-enqueue', () => {
+        this.timeout(20000);
+        const sampleEvent = common.jobs.cdnPurge;
+        sampleEvent.delay_until = `${parseInt(sampleEvent.delay_until) + 10}`;
+        const service = nock('http://jobrunner.wikipedia.org', {
+            reqheaders: {
+                host: sampleEvent.meta.domain,
+                'content-type': 'application/json'
+            }
+        })
+        .post('/wiki/Special:RunSingleJob', sampleEvent)
+        .reply({});
+        return producer.produce(`test_dc.mediawiki.job.cdnPurge`, 0,
+            Buffer.from(JSON.stringify(sampleEvent)))
+        .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
