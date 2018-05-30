@@ -24,7 +24,7 @@ class OresProcessor {
             body: message
         })))
         .spread((res) => {
-            if (!req.query.postevent) {
+            if (!req.query.postevent || !res.body) {
                 return res;
             }
             const now = new Date();
