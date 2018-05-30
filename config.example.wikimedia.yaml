@@ -9,6 +9,13 @@ spec: &spec
               user-agent: true
   title: The Change Propagation root
   paths:
+    /sys/ores:
+      x-modules:
+        - path: sys/ores_updates.js
+          options:
+            ores_precache_uris:
+              - 'https://ores.wikimedia.org/v3/precache'
+            eventbus_uri: 'https://eventbus.stubfortests.org/v1/events'
     /sys/limit:
       x-modules:
         - path: sys/rate_limiter.js
@@ -471,175 +478,12 @@ spec: &spec
                 ignore:
                   status:
                     - 503
-                cases:
-                  - match:
-                      meta:
-                        domain: ar.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/arwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: en.wiktionary.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/enwiktionary/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: es.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/eswiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: es.wikibooks.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/eswikibooks/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: de.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/dewiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: hu.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/huwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: id.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/idwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: it.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/itwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: ko.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/kowiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: no.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/nowiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: ro.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/rowiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: sv.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/svwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: uk.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/ukwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
-                  - match:
-                      meta:
-                        domain: vi.wikipedia.org
-                      performer:
-                        user_is_bot: false
-                    exec:
-                      uri: 'https://ores.wikimedia.org/v2/scores/viwiki/'
-                      query:
-                        models: 'reverted'
-                        revids: '{{message.rev_id}}'
-                        precache: true
-                        format: 'json'
+                exec:
+                  method: post
+                  uri: '/sys/ores/'
+                  query:
+                    postevent: true
+                  body: '{{globals.message}}'
 
               wikidata_description_on_edit:
                 topic: mediawiki.revision-create

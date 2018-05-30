@@ -450,35 +450,56 @@ describe('RESTBase update rules', function() {
 
     it('Should update ORES on revision-create', () => {
         const oresService = nock('https://ores.wikimedia.org')
-        .get('/v2/scores/eswiki/')
-        .query({
-            models: 'reverted',
-            revids: 1234,
-            precache: true,
-            format: 'json' })
-        .reply(200, { });
-
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/edit/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuid.now(),
-                    dt: new Date(1000).toISOString(),
-                    domain: 'es.wikipedia.org'
+        .post('/v3/precache')
+        .reply(200, {
+            "enwiki": {
+                "models": {
+                    "damaging": {
+                        "version": "0.4.0"
+                    }
                 },
-                page_title: 'TestPage',
-                rev_id: 1234,
-                rev_timestamp: new Date().toISOString(),
-                rev_parent_id: 1233,
-                performer: {
-                    user_is_bot: false
+                "scores": {
+                    "1234": {
+                        "damaging": {
+                            "score": {
+                                "prediction": false,
+                                "probability": {
+                                    "false": 0.6166652256695712,
+                                    "true": 0.38333477433042884
+                                }
+                            }
+                        }
+                    }
                 }
-            }))))
+            }
+        });
+        const eventBusService = nock('https://eventbus.stubfortests.org')
+        .post('/v1/events')
+        .reply(200, {});
+        const originalMessage = {
+            meta: {
+                topic: 'mediawiki.revision-create',
+                schema_uri: 'revision-create/1',
+                uri: '/edit/uri',
+                request_id: common.SAMPLE_REQUEST_ID,
+                id: uuid.now(),
+                dt: new Date(1000).toISOString(),
+                domain: 'en.wikipedia.org'
+            },
+            database: 'enwiki',
+            page_title: 'TestPage',
+            rev_id: 1234,
+            rev_timestamp: new Date().toISOString(),
+            rev_parent_id: 1233,
+            performer: {
+                user_is_bot: false
+            }
+        };
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
+            Buffer.from(JSON.stringify(originalMessage))))
         .then(() => common.checkAPIDone(oresService))
-        .finally(() => nock.cleanAll());
+        .then(() => common.checkAPIDone(eventBusService))
+        .finally(() => nock.cleanAll())
     });
 
     it('Should update RESTBase summary and mobile-sections on wikidata description change', () => {
