@@ -119,6 +119,35 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should not update summary for a blacklisted title', () => {
+        const mwAPI = nock('https://en.wikipedia.org', {
+            reqheaders: {
+                'cache-control': 'no-cache',
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},resource_change:https://en.wikipedia.org/wiki/User:Cyberbot_I/Test`,
+                'user-agent': 'SampleChangePropInstance'
+            }
+        })
+        .get('/api/rest_v1/page/summary/User%3ACyberbot_I%2FTest')
+        .query({ redirect: false })
+        .reply(200, { });
+
+        return P.try(() => producer.produce('test_dc.resource_change', 0,
+            Buffer.from(JSON.stringify({
+                meta: {
+                    topic: 'resource_change',
+                    schema_uri: 'resource_change/1',
+                    uri: 'https://en.wikipedia.org/api/rest_v1/page/html/User:Cyberbot_I/Test',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'en.wikipedia.org'
+                },
+                tags: ['restbase']
+            }))))
+        .then(() => common.checkPendingMocks(mwAPI, 1))
+        .finally(() => nock.cleanAll());
+    });
+
     it('Should update definition endpoint', () => {
         const mwAPI = nock('https://en.wiktionary.org', {
             reqheaders: {
@@ -294,6 +323,40 @@ describe('RESTBase update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
+    it('Should not update RESTBase on revision create for a blacklisted title', () => {
+        const mwAPI = nock('https://en.wikipedia.org', {
+            reqheaders: {
+                'cache-control': 'no-cache',
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/User:Nolelover`,
+                'x-restbase-parentrevision': '1233',
+                'if-unmodified-since': 'Thu, 01 Jan 1970 00:00:01 +0000',
+                'user-agent': 'SampleChangePropInstance'
+            }
+        })
+        .get('/api/rest_v1/page/html/User%3ANolelover/1234')
+        .query({ redirect: false })
+        .reply(200, { });
+
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
+            Buffer.from(JSON.stringify({
+                meta: {
+                    topic: 'mediawiki.revision-create',
+                    schema_uri: 'revision-create/1',
+                    uri: 'https://en.wikipedia.org/wiki/User:Nolelover',
+                    request_id: common.SAMPLE_REQUEST_ID,
+                    id: uuid.now(),
+                    dt: new Date(1000).toISOString(),
+                    domain: 'en.wikipedia.org'
+                },
+                page_title: 'User:Nolelover',
+                rev_id: 1234,
+                rev_timestamp: new Date().toISOString(),
+                rev_parent_id: 1233,
+                rev_content_changed: true
+            }))))
+        .then(() => common.checkPendingMocks(mwAPI, 1))
+        .finally(() => nock.cleanAll());
+    });
 
     it('Should not update RESTBase on revision create for wikidata', () => {
         const mwAPI = nock('https://www.wikidata.org')
