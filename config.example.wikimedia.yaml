@@ -646,6 +646,21 @@ spec: &spec
                     match_not: *others_match_not
                     exec: *page_images_others_rerender
 
+              # Map tile cache invalidation
+              purge_map_tile:
+                topic: 'resource_change'
+                match:
+                  meta:
+                    uri: '/\/osm(-intl)?\/\d{1,2}\/\d{1,6}\/\d{1,6}.png$/'
+                  tags:
+                    - tilerator
+                exec:
+                  method: post
+                  uri: '/sys/purge/'
+                  body:
+                    - meta:
+                        uri: '{{match.meta.uri}}'
+
 num_workers: 0
 logging:
   name: changeprop

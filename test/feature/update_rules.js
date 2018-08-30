@@ -11,7 +11,7 @@ const preq       = require('preq');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
-describe('RESTBase update rules', function() {
+describe('update rules', function() {
     this.timeout(30000);
 
     const changeProp = new ChangeProp('config.example.wikimedia.yaml');
@@ -1062,6 +1062,49 @@ describe('RESTBase update rules', function() {
                     domain: 'en.wikipedia.beta.wmflabs.org'
                 },
                 tags: ['restbase']
+            }))))
+        .delay(common.REQUEST_CHECK_DELAY)
+        .finally(() => {
+            if (!closed) {
+                udpServer.close();
+                done(new Error('Timeout!'));
+            }
+        });
+    });
+
+    it('Should purge caches on resource_change coming from Tilerator', (done) => {
+        var udpServer = dgram.createSocket('udp4');
+        let closed = false;
+        udpServer.on("message", function(msg) {
+            try {
+                msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
+                if (msg.indexOf('osm-intl') >= 0) {
+                    assert.deepEqual(msg,
+                        '//maps-beta.wmflabs.org/osm-intl/12/2074/1405.png')
+                    udpServer.close();
+                    closed = true;
+                    done();
+                }
+            } catch (e) {
+                udpServer.close();
+                closed = true;
+                done(e);
+            }
+        });
+        udpServer.bind(4321);
+
+        P.try(() => producer.produce('test_dc.resource_change', 0,
+            Buffer.from(JSON.stringify({
+                meta: {
+                    topic: 'resource_change',
+                    schema_uri: 'resource_change/1',
+                    uri: '//maps-beta.wmflabs.org/osm-intl/12/2074/1405.png',
+                    request_id: uuid.now(),
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain: 'maps-beta.wmflabs.org'
+                },
+                tags: ['tilerator']
             }))))
         .delay(common.REQUEST_CHECK_DELAY)
         .finally(() => {
