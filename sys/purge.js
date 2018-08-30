@@ -35,14 +35,14 @@ class PurgeService {
         }
 
         return this.purger.purge(req.body.map((event) => {
-            if (!event.meta || !event.meta.uri || !/^\/\//.test(event.meta.uri)) {
+            if (!event.meta || !event.meta.uri || !/^(https?:)?\/\//.test(event.meta.uri)) {
                 hyper.logger.log('error/events/purge', () => ({
                     message: 'Invalid event URI',
                     event_str: utils.stringify(event)
                 }));
                 return undefined;
             }
-            return `http:${event.meta.uri}`;
+            return `http:${event.meta.uri.replace(/^https?:/, '')}`;
         }).filter(event => !!event))
         .thenReturn({ status: 201 })
         .catch((e) => {

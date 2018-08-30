@@ -11,7 +11,7 @@ const preq       = require('preq');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
-describe('RESTBase update rules', function() {
+describe('update rules', function() {
     this.timeout(30000);
 
     const changeProp = new ChangeProp('config.example.wikimedia.yaml');
@@ -77,6 +77,48 @@ describe('RESTBase update rules', function() {
             }))))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
+    }
+
+    function testPurgeCacheOnResourceChange(uriBefore, uriAfter, domain, tags, testString, done) {
+        var udpServer = dgram.createSocket('udp4');
+        let closed = false;
+        udpServer.on("message", function(msg) {
+            try {
+                msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
+                if (msg.indexOf(testString) >= 0) {
+                    assert.deepEqual(msg, uriAfter)
+                    udpServer.close();
+                    closed = true;
+                    done();
+                }
+            } catch (e) {
+                udpServer.close();
+                closed = true;
+                done(e);
+            }
+        });
+        udpServer.bind(4321);
+
+        P.try(() => producer.produce('test_dc.resource_change', 0,
+            Buffer.from(JSON.stringify({
+                meta: {
+                    topic: 'resource_change',
+                    schema_uri: 'resource_change/1',
+                    uri: uriBefore,
+                    request_id: uuid.now(),
+                    id: uuid.now(),
+                    dt: new Date().toISOString(),
+                    domain
+                },
+                tags
+            }))))
+        .delay(common.REQUEST_CHECK_DELAY)
+        .finally(() => {
+            if (!closed) {
+                udpServer.close();
+                done(new Error('Timeout!'));
+            }
+        });
     }
 
 
@@ -1030,46 +1072,25 @@ describe('RESTBase update rules', function() {
 
 
     it('Should purge caches on resource_change coming from RESTBase', (done) => {
-        var udpServer = dgram.createSocket('udp4');
-        let closed = false;
-        udpServer.on("message", function(msg) {
-            try {
-                msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                if (msg.indexOf('User%3APchelolo%2FTest') >= 0) {
-                    assert.deepEqual(msg,
-                        'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536')
-                    udpServer.close();
-                    closed = true;
-                    done();
-                }
-            } catch (e) {
-                udpServer.close();
-                closed = true;
-                done(e);
-            }
-        });
-        udpServer.bind(4321);
+        return testPurgeCacheOnResourceChange(
+            'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536',
+            'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536',
+            'en.wikipedia.beta.wmflabs.org',
+            ['restbase'],
+            'User%3APchelolo%2FTest',
+            done
+        );
+    });
 
-        P.try(() => producer.produce('test_dc.resource_change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'resource_change',
-                    schema_uri: 'resource_change/1',
-                    uri: 'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536',
-                    request_id: uuid.now(),
-                    id: uuid.now(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.beta.wmflabs.org'
-                },
-                tags: ['restbase']
-            }))))
-        .delay(common.REQUEST_CHECK_DELAY)
-        .finally(() => {
-            if (!closed) {
-                udpServer.close();
-                done(new Error('Timeout!'));
-            }
-        });
+    it('Should purge caches on resource_change coming from Tilerator', (done) => {
+        return testPurgeCacheOnResourceChange(
+            'https://maps-beta.wmflabs.org/osm-intl/12/2074/1405.png',
+            'http://maps-beta.wmflabs.org/osm-intl/12/2074/1405.png',
+            'maps-beta.wmflabs.org',
+            ['tilerator'],
+            'osm-intl',
+            done
+        );
     });
 
     after(() => changeProp.stop());
