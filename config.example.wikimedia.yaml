@@ -650,8 +650,6 @@ spec: &spec
               purge_map_tile:
                 topic: 'resource_change'
                 match:
-                  meta:
-                    uri: '/\/osm(-intl)?\/\d{1,2}\/\d{1,6}\/\d{1,6}.png$/'
                   tags:
                     - tilerator
                 exec:
@@ -659,7 +657,7 @@ spec: &spec
                   uri: '/sys/purge/'
                   body:
                     - meta:
-                        uri: '{{match.meta.uri}}'
+                        uri: '{{message.meta.uri}}'
 
 num_workers: 0
 logging:
