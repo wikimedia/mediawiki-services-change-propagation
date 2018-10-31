@@ -86,7 +86,7 @@ Also, you need to enable topic deletion so that the test scripts could clean up
 kafka state before each test run:
 
 ```bash
-echo 'delete.topic.enable=true' >> KAFKA_HOME/config/server.properties
+echo 'delete.topic.enable=true' >> $KAFKA_HOME/config/server.properties
 ```
 
 Before starting the development version of change propagation or running
