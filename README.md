@@ -71,22 +71,17 @@ convert it to HTCP purge and make an HTCP request:
 ## Testing
 
 For testing locally you need to setup and start Apache Kafka and set the 
-`KAFKA_HOME` environment variable to point to the Kafka home directory.
+`KAFKA_HOME` environment variable to point to the Kafka home directory and
+`KAFKA_VERSION` environment variable to specify the desired Kafka version (1.1.0)
 Here's a sample script you need to run:
 
 ```bash
 export KAFKA_HOME=<your desired kafka install path>
-wget http://apache.claz.org/kafka/1.1.1/kafka_2.12-1.1.1.tgz -O kafka.tgz
-mkdir -p $KAFKA_HOME && tar xzf kafka.tgz -C $KAFKA_HOME --strip-components 1
+export KAFKA_VERSION=1.1.0
 echo "KAFKA_HOME=$KAFKA_HOME" >> ~/.bash_profile
 echo "PATH=\$PATH:\$KAFKA_HOME/bin" >> ~/.bash_profile
-```
-
-Also, you need to enable topic deletion so that the test scripts could clean up
-kafka state before each test run:
-
-```bash
-echo 'delete.topic.enable=true' >> $KAFKA_HOME/config/server.properties
+npm install
+npm run install-kafka
 ```
 
 Before starting the development version of change propagation or running
