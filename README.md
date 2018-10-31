@@ -84,6 +84,9 @@ npm install
 npm run install-kafka
 ```
 
+Apart from the above you need to have a running [Redis](https://redis.io)
+server locally on your machine.
+
 Before starting the development version of change propagation or running
 test you need to start Zookeeper and Kafka with `start-kafka` npm script.
 To stop Kafka and Zookeeper tun `stop-kafka` npm script.
