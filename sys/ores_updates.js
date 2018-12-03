@@ -44,7 +44,8 @@ class OresProcessor {
                 rev_id: message.rev_id,
                 rev_parent_id: message.rev_parent_id,
                 rev_timestamp: message.rev_timestamp,
-                scores: []
+                scores: [],
+                errors: []
             };
 
 
@@ -67,7 +68,8 @@ class OresProcessor {
                     model_version: domainScores.models[modelName].version,
                 };
                 if (revScores[modelName].error) {
-                    score.error = revScores[modelName].error;
+                    Object.assign(score, revScores[modelName].error);
+                    newMessage.errors.push(score);
                 } else {
                     const originalScore = revScores[modelName].score;
                     // Convert prediction to array of strings
@@ -81,8 +83,8 @@ class OresProcessor {
                         name: probName,
                         value: originalScore.probability[probName]
                     }));
+                    newMessage.scores.push(score);
                 }
-                newMessage.scores.push(score);
             });
             return hyper.post({
                 uri: this._options.eventbus_uri,
