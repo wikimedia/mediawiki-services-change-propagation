@@ -71,9 +71,7 @@ class OresProcessor {
                 };
                 if (revScores[modelName].error) {
                     Object.assign(score, revScores[modelName].error);
-                    if (newMessage.errors === undefined) {
-                        newMessage.errors = [];
-                    }
+                    newMessage.errors = newMessage.errors || [];
                     newMessage.errors.push(score);
                 } else {
                     const originalScore = revScores[modelName].score;
@@ -88,9 +86,7 @@ class OresProcessor {
                         name: probName,
                         value: originalScore.probability[probName]
                     }));
-                    if (newMessage.scores === undefined) {
-                        newMessage.scores = [];
-                    }
+                    newMessage.scores = newMessage.scores || [];
                     newMessage.scores.push(score);
                 }
             });
