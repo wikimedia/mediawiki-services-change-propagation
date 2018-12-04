@@ -43,10 +43,12 @@ class OresProcessor {
                 page_namespace: message.page_namespace,
                 rev_id: message.rev_id,
                 rev_parent_id: message.rev_parent_id,
-                rev_timestamp: message.rev_timestamp,
-                scores: [],
-                errors: []
+                rev_timestamp: message.rev_timestamp
             };
+            // newMessage.scores and/or newMessage.errors
+            // will be provided only if there are any
+            // elements for those arrays.
+            // https://phabricator.wikimedia.org/T210465#4797591
 
 
             const domainScores = res.body[newMessage.database];
@@ -69,6 +71,7 @@ class OresProcessor {
                 };
                 if (revScores[modelName].error) {
                     Object.assign(score, revScores[modelName].error);
+                    newMessage.errors = newMessage.errors || [];
                     newMessage.errors.push(score);
                 } else {
                     const originalScore = revScores[modelName].score;
@@ -83,6 +86,7 @@ class OresProcessor {
                         name: probName,
                         value: originalScore.probability[probName]
                     }));
+                    newMessage.scores = newMessage.scores || [];
                     newMessage.scores.push(score);
                 }
             });
