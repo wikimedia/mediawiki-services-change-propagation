@@ -41,6 +41,7 @@ class OresProcessor {
                 page_id: message.page_id,
                 page_title: message.page_title,
                 page_namespace: message.page_namespace,
+                performer: message.performer,
                 rev_id: message.rev_id,
                 rev_parent_id: message.rev_parent_id,
                 rev_timestamp: message.rev_timestamp
