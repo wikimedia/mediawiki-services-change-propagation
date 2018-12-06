@@ -199,6 +199,8 @@ common.events = {
             rev_timestamp: new Date().toISOString(),
             rev_parent_id: 1233,
             performer: {
+                user_text: 'I am a user',
+                user_groups: [ 'I am a group' ],
                 user_is_bot: false
             }
         }
