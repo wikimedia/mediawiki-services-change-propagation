@@ -13,7 +13,7 @@
     "install-kafka": "sh node_modules/kafka-test-tools/install_kafka.sh",
     "start-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh start",
     "stop-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh stop",
-    "test": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && npm run lint && mocha",
+    "test": "export UV_THREADPOOL_SIZE=128 && npm run lint && npm run cleanup && mocha",
     "lint": "node_modules/.bin/eslint --cache --max-warnings 0 --ext .js .",
     "coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
