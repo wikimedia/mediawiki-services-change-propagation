@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const extend = require('extend');
 
@@ -18,7 +18,6 @@ class Partitioner {
             throw new Error('No partition_map was provided to the partitioner');
         }
 
-
         if (!options.partition_default) {
             throw new Error('No partition_default was provided to the partitioner');
         }
@@ -28,6 +27,7 @@ class Partitioner {
      * Selects a proper partition and reposts the message to the partitioned topic.
      * @param {HyperSwitch} hyper
      * @param {Object} req
+     * @return {Object}
      */
     repostToPartition(hyper, req) {
         let event = req.body;

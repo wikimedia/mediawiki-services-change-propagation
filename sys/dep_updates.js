@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const extend = require('extend');
 const HyperSwitch = require('hyperswitch');
@@ -132,7 +132,7 @@ function _sendContinueEvent(hyper, topic, origEvent, continueToken) {
                 dt: origEvent.meta.dt
             },
             original_event: origEvent,
-            continue: continueToken,
+            continue: continueToken
         }]
     });
 }

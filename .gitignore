@@ -5,4 +5,7 @@ npm-debug.log*
 *~
 
 .idea/*
+.vscode/
 /config.yaml
+
+.eslintcache

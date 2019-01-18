@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const Limiter = require('ratelimit.js').RateLimit;
 const P = require('bluebird');

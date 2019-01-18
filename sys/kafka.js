@@ -1,10 +1,8 @@
-"use strict";
-
+'use strict';
 
 /**
  * restbase-mod-queue-kafka main entry point
  */
-
 
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
