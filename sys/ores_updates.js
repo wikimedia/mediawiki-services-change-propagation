@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const P = require('bluebird');
 const uuid = require('cassandra-uuid').TimeUuid;
@@ -35,7 +35,7 @@ class OresProcessor {
                     request_id: message.meta.request_id,
                     id: uuid.fromDate(now).toString(),
                     dt: now.toISOString(),
-                    domain: message.meta.domain,
+                    domain: message.meta.domain
                 },
                 database: message.database,
                 page_id: message.page_id,
@@ -50,7 +50,6 @@ class OresProcessor {
             // will be provided only if there are any
             // elements for those arrays.
             // https://phabricator.wikimedia.org/T210465#4797591
-
 
             const domainScores = res.body[newMessage.database];
             const revScores = domainScores.scores[`${newMessage.rev_id}`];
@@ -68,7 +67,7 @@ class OresProcessor {
                 // }
                 const score = {
                     model_name: modelName,
-                    model_version: domainScores.models[modelName].version,
+                    model_version: domainScores.models[modelName].version
                 };
                 if (revScores[modelName].error) {
                     Object.assign(score, revScores[modelName].error);
@@ -116,7 +115,7 @@ module.exports = (options) => {
             }
         },
         operations: {
-            process: processor.process.bind(processor),
+            process: processor.process.bind(processor)
         }
     };
 };

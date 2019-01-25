@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const Purger      = require('htcp-purge');
 const HyperSwitch = require('hyperswitch');

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const mixins = require('../lib/mixins');
 const utils = require('../lib/utils');
@@ -40,7 +40,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
             hyper.metrics.increment(`${name}_dedupe`);
             hyper.logger.log('trace/dedupe', () => ({
                 message: 'Event was deduplicated based on id',
-                event_str: utils.stringify(message),
+                event_str: utils.stringify(message)
             }));
             return DUPLICATE;
         })
@@ -56,13 +56,13 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
                 // If the same event (by sha1) was created before the previous execution
                 // time, the changes that caused it were already in the database, so it
                 // will be a no-op and can be deduplicated.
-                if (previousExecutionTime
+                if (previousExecutionTime &&
                         // Give that the resolution of the event dt is 1 second, this could
                         // be false-positive when the job queue is so quick that it executes
                         // two jobs with the same SHA1 within a single second. To be on the safe
                         // side - subtract 1 second from the previous execution time to allow for
                         // some lag.
-                        && new Date(previousExecutionTime) - 1000 > new Date(message.meta.dt)) {
+                        new Date(previousExecutionTime) - 1000 > new Date(message.meta.dt)) {
                     hyper.metrics.increment(`${name}_dedupe`);
                     hyper.logger.log('trace/dedupe', () => ({
                         message: 'Event was deduplicated based on sha1',
@@ -74,9 +74,9 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
                 // If the root event was created before the previous exec time for the same
                 // leaf event - we can deduplicate cause by the time of the prev execution
                 // the template (root_event source) changes were already in the database.
-                if (previousExecutionTime
-                        && message.root_event
-                        && new Date(previousExecutionTime) - 1000 >
+                if (previousExecutionTime &&
+                        message.root_event &&
+                        new Date(previousExecutionTime) - 1000 >
                             new Date(message.root_event.dt)) {
                     hyper.metrics.increment(`${name}_dedupe`);
                     hyper.logger.log('trace/dedupe', () => ({
@@ -104,8 +104,8 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
             .then((oldEventTimestamp) => {
                 // If this event was caused by root event and there was a leaf event executed
                 // already that belonged to a later root_event we can cut off this chain.
-                if (oldEventTimestamp
-                        && new Date(oldEventTimestamp) > new Date(message.root_event.dt)) {
+                if (oldEventTimestamp &&
+                        new Date(oldEventTimestamp) > new Date(message.root_event.dt)) {
                     hyper.metrics.increment(`${name}_dedupe`);
                     hyper.logger.log('trace/dedupe', () => ({
                         message: 'Event was deduplicated based on root event',
