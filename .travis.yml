@@ -3,7 +3,7 @@ sudo: false
 
 node_js:
   - "6"
-  - "8"
+  - "10"
 
 env:
   - KAFKA_HOME=../kafka KAFKA_VERSION=1.1.0 CXX=g++-4.8
