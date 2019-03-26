@@ -36,7 +36,9 @@ test_dc.mediawiki.job.updateBetaFeaturesUserCounts
 test_dc.cpjobqueue.retry.mediawiki.job.updateBetaFeaturesUserCounts
 test_dc.mediawiki.job.htmlCacheUpdate
 test_dc.cpjobqueue.retry.mediawiki.job.htmlCacheUpdate
+test_dc.cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate 8
+test_dc.cpjobqueue.retry.cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate 8
 test_dc.mediawiki.job.refreshLinks
 test_dc.cpjobqueue.retry.mediawiki.job.refreshLinks
-test_dc.change-prop.partitioned.mediawiki.job.refreshLinks 8
-test_dc.cpjobqueue.retry.change-prop.partitioned.mediawiki.job.refreshLinks 8
+test_dc.cpjobqueue.partitioned.mediawiki.job.refreshLinks 8
+test_dc.cpjobqueue.retry.cpjobqueue.partitioned.mediawiki.job.refreshLinks 8

@@ -1,13 +1,14 @@
 'use strict';
 
 const extend = require('extend');
+const Template = require('hyperswitch').Template;
 
 class Partitioner {
     constructor(options) {
         this._options = options || {};
 
-        if (!options.partition_topic_name) {
-            throw new Error('No partition_topic_name was provided to the partitioner');
+        if (!options.templates || !options.templates.partition_topic) {
+            throw new Error('No partition_topic template was provided to the partitioner');
         }
 
         if (!options.partition_key) {
@@ -21,6 +22,8 @@ class Partitioner {
         if (!options.partition_default) {
             throw new Error('No partition_default was provided to the partitioner');
         }
+
+        this._partitionedTopicTemplate = new Template(options.templates.partition_topic);
     }
 
     /**
@@ -42,7 +45,9 @@ class Partitioner {
         // in the executor regarding metrics, limiters, follow-up
         // executions etc.
         event = extend(true, {}, event);
-        event.meta.topic = this._options.partition_topic_name;
+        event.meta.topic = this._partitionedTopicTemplate.expand({
+            message: event
+        });
         return hyper.post({
             uri: `/sys/queue/events/${partition}`,
             body: [ event ]

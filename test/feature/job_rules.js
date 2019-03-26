@@ -45,7 +45,7 @@ describe('JobQueue rules', function() {
     it('Should support partitioned refreshLinks', () => {
         const sampleEvent = common.jobs.refreshLinks;
         const sampleEventCopy = JSON.parse(JSON.stringify(sampleEvent));
-        sampleEventCopy.meta.topic = 'change-prop.partitioned.mediawiki.job.refreshLinks';
+        sampleEventCopy.meta.topic = 'cpjobqueue.partitioned.mediawiki.job.refreshLinks';
         const service = nock('http://jobrunner.wikipedia.org', {
             reqheaders: {
                 host: sampleEvent.meta.domain,
