@@ -1,0 +1,10 @@
+extends: '../.eslintrc.yml'
+env:
+  mocha: true
+rules:
+  no-invalid-this: 
+    - off
+  no-console: 
+    - off
+  max-len:
+    - off

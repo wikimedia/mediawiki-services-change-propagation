@@ -1,43 +1,41 @@
 'use strict';
 
-
 var assert = require('assert');
 var Rule = require('../../lib/rule');
 
+describe('Rule', function () {
 
-describe('Rule', function() {
-
-    it('topic required', function() {
-        assert.throws(function() {
-            var r = new Rule('rule');
+    it('topic required', function () {
+        assert.throws(function () {
+            const r = new Rule('rule'); // eslint-disable-line no-unused-vars
         }, Error, 'The rule should need to have a topic!');
     });
 
-    it('no-op rule', function() {
-        var r = new Rule('noop_rule', {topic: 'nono'});
+    it('no-op rule', function () {
+        var r = new Rule('noop_rule', { topic: 'nono' });
         assert.ok(r.noop, 'The rule should be a no-op!');
     });
 
-    it('simple rule - one request', function() {
+    it('simple rule - one request', function () {
         var r = new Rule('rule', {
             topic: 'nono',
-            exec: {uri: 'a/b/c'}
+            exec: { uri: 'a/b/c' }
         });
         assert.ok(Array.isArray(r.getHandler(0).exec), 'exec is expected to be an array!');
     });
 
-    it('simple rule - multiple requests', function() {
+    it('simple rule - multiple requests', function () {
         var r = new Rule('rule', {
             topic: 'nono',
             exec: [
-                {uri: 'a/b/c'},
-                {uri: 'e/f/g/h'}
+                { uri: 'a/b/c' },
+                { uri: 'e/f/g/h' }
             ]
         });
         assert.equal(r.getHandler(0).exec.length, 2, 'exec is expected to have 2 elements!');
     });
 
-    describe('Matching', function() {
+    describe('Matching', function () {
 
         var msg = {
             meta: {
@@ -48,87 +46,88 @@ describe('Rule', function() {
             string: 'oolala'
         };
 
-        it('all', function() {
+        it('all', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'}
+                exec: { uri: 'a/b/c' }
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match all event messages!');
         });
 
-        it('simple value match', function() {
+        it('simple value match', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1, string: 'oolala'}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1, string: 'oolala' }
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('simple value mismatch', function() {
+        it('simple value mismatch', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 2, string: 'oolala'}
+                exec: { uri: 'a/b/c' },
+                match: { number: 2, string: 'oolala' }
             });
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('regex match', function() {
+        it('regex match', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1, string: '/(?:la)+/'}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1, string: '/(?:la)+/' }
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('regex match with undefined', function() {
+        it('regex match with undefined', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1, string: '/.+/'}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1, string: '/.+/' }
             });
             var msgWithUndefined = Object.assign({}, msg);
             msgWithUndefined.string = undefined;
             assert.equal(r.test(msgWithUndefined), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('regex mismatch', function() {
+        it('regex mismatch', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1, string: '/lah/'}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1, string: '/lah/' }
             });
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('array match', function() {
+        it('array match', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {array: ['1', 2, '/(\\d)/']}
+                exec: { uri: 'a/b/c' },
+                match: { array: ['1', 2, '/(\\d)/'] }
             });
             var msg = { array: [2, '1', '3', '4', 5] };
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('malformed match', function() {
+        it('malformed match', function () {
             assert.throws(
-                function() {
+                function () {
+                    // eslint-disable-next-line no-unused-vars
                     var r = new Rule('rule', {
                         topic: 'nono',
-                        exec: {uri: 'a/b/c'},
-                        match: {number: 1, string: '/l\/ah/'}
+                        exec: { uri: 'a/b/c' },
+                        match: { number: 1, string: '/l/ah/' }
                     });
             }, Error);
         });
 
-        it('match_not', function() {
+        it('match_not', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match_not: {meta: {uri: '/my-url/'}}
+                exec: { uri: 'a/b/c' },
+                match_not: { meta: { uri: '/my-url/' } }
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
@@ -136,10 +135,10 @@ describe('Rule', function() {
         it('match_not array', () => {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
+                exec: { uri: 'a/b/c' },
                 match_not: [
-                    {meta: {uri: '/my-url/'}},
-                    {meta: {uri: '/my-other-url/'}}
+                    { meta: { uri: '/my-url/' } },
+                    { meta: { uri: '/my-other-url/' } }
                 ]
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
@@ -155,62 +154,64 @@ describe('Rule', function() {
             }), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('matches match and match_not', function() {
+        it('matches match and match_not', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1},
-                match_not: {meta: {uri: '/my-url/'}}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1 },
+                match_not: { meta: { uri: '/my-url/' } }
             });
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('matches match but not match_not', function() {
+        it('matches match but not match_not', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 1},
-                match_not: {meta: {uri: '/fake/'}}
+                exec: { uri: 'a/b/c' },
+                match: { number: 1 },
+                match_not: { meta: { uri: '/fake/' } }
             });
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('matches match_not but not match', function() {
+        it('matches match_not but not match', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/b/c'},
-                match: {number: 10},
-                match_not: {meta: {uri: '/my-url/'}}
+                exec: { uri: 'a/b/c' },
+                match: { number: 10 },
+                match_not: { meta: { uri: '/my-url/' } }
             });
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('expansion', function() {
+        it('expansion', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/{match.meta.uri[1]}/c'},
-                match: { meta: { uri: "/\\/fake\\/([^\\/]+)/" }, number: 1 }
+                exec: { uri: 'a/{match.meta.uri[1]}/c' },
+                match: { meta: { uri: '/\\/fake\\/([^\\/]+)/' }, number: 1 }
             });
             var exp = r.getHandler(r.test(msg)).expand(msg);
-            assert.deepEqual(exp.meta.uri, /\/fake\/([^\/]+)/.exec(msg.meta.uri));
+            assert.deepEqual(exp.meta.uri, /\/fake\/([^/]+)/.exec(msg.meta.uri));
         });
 
-        it('expansion with named groups', function() {
+        it('expansion with named groups', function () {
             var r = new Rule('rule', {
                 topic: 'nono',
-                exec: {uri: 'a/{match.meta.uri.element}/c'},
-                match: { meta: { uri: "/\\/fake\\/(?<element>[^\\/]+)/" }, number: 1 }
+                exec: { uri: 'a/{match.meta.uri.element}/c' },
+                match: { meta: { uri: '/\\/fake\\/(?<element>[^\\/]+)/' }, number: 1 }
             });
             var exp = r.getHandler(r.test(msg)).expand(msg);
             assert.deepEqual(exp.meta.uri, { element: 'uri' });
         });
 
-        it('checks for named and unnamed groups mixing', function() {
+        it('checks for named and unnamed groups mixing', function () {
             try {
+                // eslint-disable-next-line no-unused-vars
                 var r = new Rule('rule', {
                     topic: 'nono',
-                    exec: {uri: 'a/{match.meta.uri.element}/c'},
-                    match: { meta: { uri: "/\\/(\w+)\\/(?<element>[^\\/]+)/" }, number: 1 }
+                    exec: { uri: 'a/{match.meta.uri.element}/c' },
+                    // eslint-disable-next-line no-useless-escape
+                    match: { meta: { uri: '/\\/(\w+)\\/(?<element>[^\\/]+)/' }, number: 1 }
                 });
                 throw new Error('Error must be thrown');
             } catch (e) {
@@ -222,4 +223,3 @@ describe('Rule', function() {
     });
 
 });
-

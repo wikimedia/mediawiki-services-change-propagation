@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const ChangeProp = require('../utils/changeProp');
 const nock = require('nock');
@@ -7,25 +7,25 @@ const P = require('bluebird');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
-describe('JobQueue rules', function() {
+describe('JobQueue rules', function () {
     this.timeout(30000);
 
     const changeProp = new ChangeProp('config.jobqueue.wikimedia.yaml');
     let producer;
 
-    before(function() {
+    before(function () {
         // Setting up might take some tome, so disable the timeout
         this.timeout(50000);
         return changeProp.start()
         .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
-        .then(result => producer = result);
+        .then((result) => { producer = result; });
     });
 
     [
         'updateBetaFeaturesUserCounts',
         'cdnPurge'
     ].forEach((jobType) => {
-        it(`Should propagate ${jobType} job`, function() {
+        it(`Should propagate ${jobType} job`, function () {
             this.timeout(10000);
             const sampleEvent = common.jobs[jobType];
             const service = nock('http://jobrunner.wikipedia.org', {
@@ -54,7 +54,7 @@ describe('JobQueue rules', function() {
         })
         .post('/wiki/Special:RunSingleJob', sampleEventCopy)
         .reply({});
-        return producer.produce(`test_dc.mediawiki.job.refreshLinks`, 0, sampleEvent.toBuffer())
+        return producer.produce('test_dc.mediawiki.job.refreshLinks', 0, sampleEvent.toBuffer())
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
@@ -127,7 +127,9 @@ describe('JobQueue rules', function() {
         const firstEvent = common.jobs.htmlCacheUpdate;
         const secondEvent = common.jobs.htmlCacheUpdate;
         secondEvent.root_event.signature = firstEvent.root_event.signature;
-        secondEvent.root_event.dt = new Date(new Date(firstEvent.root_event.dt) - 1000).toISOString();
+        secondEvent.root_event.dt =
+            new Date(new Date(firstEvent.root_event.dt) - 1000).toISOString();
+
         const service = nock('http://jobrunner.wikipedia.org', {
             reqheaders: {
                 host: firstEvent.meta.domain,
@@ -158,11 +160,10 @@ describe('JobQueue rules', function() {
         })
         .post('/wiki/Special:RunSingleJob', sampleEvent)
         .reply({});
-        return producer.produce(`test_dc.mediawiki.job.cdnPurge`, 0, sampleEvent.toBuffer())
+        return producer.produce('test_dc.mediawiki.job.cdnPurge', 0, sampleEvent.toBuffer())
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
     });
 
     after(() => changeProp.stop());
 });
-

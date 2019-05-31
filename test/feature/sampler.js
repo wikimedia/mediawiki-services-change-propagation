@@ -5,7 +5,6 @@ const common  = require('../utils/common');
 const Sampler = require('../../lib/sampler');
 const CHARS   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-
 function makeRandomString(length) {
     let text = '';
     for (let i = 0; i < length; i++) {
@@ -19,7 +18,7 @@ describe('Sampler', () => {
         const rate = 0.20;    // Accept 20%
         const corpusLen = 10000;
         const template = '{{message.meta.domain}}-{{message.page_title}}';
-        const sampler = new Sampler({ rate: rate, hash_template: template});
+        const sampler = new Sampler({ rate: rate, hash_template: template });
 
         let count = 0;
         for (let i = 0; i < corpusLen; i++) {

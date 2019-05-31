@@ -60,7 +60,7 @@ class MockConsumer extends EventEmitter {
                     return P.resolve([
                         Object.assign(
                             topicMessages[currentTopicOffset],
-                            {offset: currentTopicOffset}
+                            { offset: currentTopicOffset }
                         )
                     ]);
                 }
@@ -109,7 +109,6 @@ class MockKafkaFactory {
     createMetadataWatch() {
        return P.resolve(new MockMetadataWatch());
     }
-
 
     createProducer() {
         return P.resolve(new MockProducer(this._messages));
