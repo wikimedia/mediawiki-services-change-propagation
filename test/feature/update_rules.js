@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const ChangeProp = require('../utils/changeProp');
 const nock       = require('nock');
@@ -8,18 +8,17 @@ const dgram      = require('dgram');
 const assert     = require('assert');
 const P          = require('bluebird');
 const preq       = require('preq');
-const Ajv        = require('ajv');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
-describe('update rules', function() {
+describe('update rules', function () {
     this.timeout(30000);
 
     const changeProp = new ChangeProp('config.example.wikimedia.yaml');
     let producer;
     let siteInfoResponse;
 
-    before(function() {
+    before(function () {
         // Setting up might take some tome, so disable the timeout
         this.timeout(50000);
         return changeProp.start()
@@ -35,18 +34,18 @@ describe('update rules', function() {
                 }
             });
         })
-        .then((res) => siteInfoResponse = res.body)
+        .then((res) => { siteInfoResponse = res.body; })
         .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
-        .then((result) => producer = result);
+        .then((result) => { producer = result; });
     });
 
     const nockWithOptionalSiteInfo = () => nock('https://en.wikipedia.org')
         .post('/w/api.php', {
             formatversion: '2',
-            format: "json",
-            action: "query",
-            meta: "siteinfo",
-            siprop: "general|namespaces|namespacealiases|specialpagealiases"
+            format: 'json',
+            action: 'query',
+            meta: 'siteinfo',
+            siprop: 'general|namespaces|namespacealiases|specialpagealiases'
         })
         .optionally()
         .reply(200, siteInfoResponse);
@@ -83,11 +82,11 @@ describe('update rules', function() {
     function testPurgeCacheOnResourceChange(uriBefore, uriAfter, domain, tags, testString, done) {
         var udpServer = dgram.createSocket('udp4');
         let closed = false;
-        udpServer.on("message", function(msg) {
+        udpServer.on('message', function (msg) {
             try {
                 msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
                 if (msg.indexOf(testString) >= 0) {
-                    assert.deepEqual(msg, uriAfter)
+                    assert.deepEqual(msg, uriAfter);
                     udpServer.close();
                     closed = true;
                     done();
@@ -121,8 +120,6 @@ describe('update rules', function() {
             }
         });
     }
-
-
 
     it('Should update summary endpoint', () =>
         summaryEndpointTest('resource_change'));
@@ -466,7 +463,7 @@ describe('update rules', function() {
             }
         })
         .get('/api/rest_v1/page/html/User%3APchelolo%2FTest1/2')
-        .matchHeader( 'if-unmodified-since', 'Thu, 01 Jan 1970 00:00:01 +0000')
+        .matchHeader('if-unmodified-since', 'Thu, 01 Jan 1970 00:00:01 +0000')
         .query({ redirect: false })
         .reply(200, { })
         .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
@@ -530,20 +527,20 @@ describe('update rules', function() {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
             .reply(200, {
-                "enwiki": {
-                    "models": {
-                        "damaging": {
-                            "version": "0.4.0"
+                enwiki: {
+                    models: {
+                        damaging: {
+                            version: '0.4.0'
                         }
                     },
-                    "scores": {
-                        "1234": {
-                            "damaging": {
-                                "score": {
-                                    "prediction": false,
-                                    "probability": {
-                                        "false": 0.6166652256695712,
-                                        "true": 0.38333477433042884
+                    scores: {
+                        1234: {
+                            damaging: {
+                                score: {
+                                    prediction: false,
+                                    probability: {
+                                        false: 0.6166652256695712,
+                                        true: 0.38333477433042884
                                     }
                                 }
                             }
@@ -552,7 +549,7 @@ describe('update rules', function() {
                 }
             });
             const eventBusService = nock('https://eventbus.stubfortests.org')
-            .post('/v1/events', function(body) {
+            .post('/v1/events', function (body) {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;
                 }
@@ -573,18 +570,18 @@ describe('update rules', function() {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
             .reply(200, {
-                "enwiki": {
-                    "models": {
-                        "damaging": {
-                            "version": "0.4.0"
+                enwiki: {
+                    models: {
+                        damaging: {
+                            version: '0.4.0'
                         }
                     },
-                    "scores": {
-                        "1234": {
-                            "damaging": {
-                                "error": {
-                                    "type": 'Bla',
-                                    "message": 'Something is terribly wrong'
+                    scores: {
+                        1234: {
+                            damaging: {
+                                error: {
+                                    type: 'Bla',
+                                    message: 'Something is terribly wrong'
                                 }
                             }
                         }
@@ -592,7 +589,7 @@ describe('update rules', function() {
                 }
             });
             const eventBusService = nock('https://eventbus.stubfortests.org')
-            .post('/v1/events', function(body) {
+            .post('/v1/events', function (body) {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;
                 }
@@ -618,17 +615,17 @@ describe('update rules', function() {
             normalize: 'true'
         })
         .reply(200, {
-            "success": 1,
-            "entities": {
-                "Q1": {
-                    "type": "item",
-                    "id": "Q1",
-                    "sitelinks": {
-                        "enwiki": {
-                            "site": "ruwiki",
-                            "title": "Пётр",
-                            "badges": [],
-                            "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80"
+            success: 1,
+            entities: {
+                Q1: {
+                    type: 'item',
+                    id: 'Q1',
+                    sitelinks: {
+                        enwiki: {
+                            site: 'ruwiki',
+                            title: 'Пётр',
+                            badges: [],
+                            url: 'https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
                         }
                     }
                 }
@@ -662,7 +659,7 @@ describe('update rules', function() {
                 },
                 page_title: 'Q1',
                 page_namespace: 0,
-                comment: "/* wbeditentity-update:0| */ add [it] label",
+                comment: '/* wbeditentity-update:0| */ add [it] label',
                 rev_content_changed: true
             }))))
         .delay(common.REQUEST_CHECK_DELAY)
@@ -682,17 +679,17 @@ describe('update rules', function() {
             normalize: 'true'
         })
         .reply(200, {
-            "success": 1,
-            "entities": {
-                "Q1": {
-                    "type": "item",
-                    "id": "Q1",
-                    "sitelinks": {
-                        "enwiki": {
-                            "site": "ruwiki",
-                            "title": "Пётр",
-                            "badges": [],
-                            "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80"
+            success: 1,
+            entities: {
+                Q1: {
+                    type: 'item',
+                    id: 'Q1',
+                    sitelinks: {
+                        enwiki: {
+                            site: 'ruwiki',
+                            title: 'Пётр',
+                            badges: [],
+                            url: 'https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
                         }
                     }
                 }
@@ -727,7 +724,7 @@ describe('update rules', function() {
                 },
                 page_title: 'Q1',
                 page_namespace: 0,
-                comment: "/* undo */ Undo revision 440223057 by Mhollo",
+                comment: '/* undo */ Undo revision 440223057 by Mhollo',
                 rev_content_changed: true
             }))))
         .delay(common.REQUEST_CHECK_DELAY)
@@ -747,17 +744,17 @@ describe('update rules', function() {
             normalize: 'true'
         })
         .reply(200, {
-            "success": 1,
-            "entities": {
-                "Q2": {
-                    "type": "item",
-                    "id": "Q2",
-                    "sitelinks": {
-                        "enwiki": {
-                            "site": "ruwiki",
-                            "title": "Пётр",
-                            "badges": [],
-                            "url": "https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80"
+            success: 1,
+            entities: {
+                Q2: {
+                    type: 'item',
+                    id: 'Q2',
+                    sitelinks: {
+                        enwiki: {
+                            site: 'ruwiki',
+                            title: 'Пётр',
+                            badges: [],
+                            url: 'https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
                         }
                     }
                 }
@@ -790,7 +787,7 @@ describe('update rules', function() {
                     domain: 'www.wikidata.org'
                 },
                 page_title: 'Q2',
-                page_namespace: 0,
+                page_namespace: 0
             }))))
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => common.checkAPIDone(wikidataAPI))
@@ -809,17 +806,17 @@ describe('update rules', function() {
             normalize: 'true'
         })
         .reply(200, {
-            "error": {
-                "docref": "See https://www.wikidata.org/w/api.php for API usage",
-                "messages": [{
-                    "html": "Could not find such an entity.",
-                    "parameters": [],
-                    "name": "wikibase-api-no-such-entity"
+            error: {
+                docref: 'See https://www.wikidata.org/w/api.php for API usage',
+                messages: [{
+                    html: 'Could not find such an entity.',
+                    parameters: [],
+                    name: 'wikibase-api-no-such-entity'
                 }],
-                "id": "Property:P1",
-                "info": "Could not find such an entity. (Invalid id: Property:1)",
-                "code": "no-such-entity"
-            },
+                id: 'Property:P1',
+                info: 'Could not find such an entity. (Invalid id: Property:1)',
+                code: 'no-such-entity'
+            }
         });
 
         return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
@@ -853,13 +850,13 @@ describe('update rules', function() {
             normalize: 'true'
         })
         .reply(200, {
-            "entities": {
-                "Q1220694122": {
-                    "id": "Q1220694122",
-                    "missing": ""
+            entities: {
+                Q1220694122: {
+                    id: 'Q1220694122',
+                    missing: ''
                 }
             },
-            "success": 1
+            success: 1
         });
 
         return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
@@ -875,7 +872,7 @@ describe('update rules', function() {
                 },
                 page_title: 'Q2',
                 page_namespace: 0,
-                comment: "/* wbeditentity-update:0| */ add [it] label",
+                comment: '/* wbeditentity-update:0| */ add [it] label',
                 rev_content_changed: true
             }))))
         .delay(common.REQUEST_CHECK_DELAY)
@@ -886,7 +883,7 @@ describe('update rules', function() {
     it('Should rerender image usages on file update', () => {
         const mwAPI = nockWithOptionalSiteInfo()
         .get('/api/rest_v1/page/html/File%3APchelolo%2FTest.jpg/112233')
-        .query({redirect: false})
+        .query({ redirect: false })
         .reply(200)
         .post('/w/api.php', {
             format: 'json',
@@ -907,7 +904,7 @@ describe('update rules', function() {
             }
         })
         .get('/api/rest_v1/page/html/File_Transcluded_Page')
-        .query({redirect: false})
+        .query({ redirect: false })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
         .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
         .matchHeader('x-restbase-mode', 'files')
@@ -929,7 +926,7 @@ describe('update rules', function() {
             }
         })
         .get('/api/rest_v1/page/html/File_Transcluded_Page')
-        .query({redirect: false})
+        .query({ redirect: false })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
         .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
         .matchHeader('x-restbase-mode', 'files')
@@ -958,7 +955,7 @@ describe('update rules', function() {
     it('Should rerender transclusions on page update', () => {
         const mwAPI = nockWithOptionalSiteInfo()
         .get('/api/rest_v1/page/html/Test_Page/112233')
-        .query({redirect: false})
+        .query({ redirect: false })
         .reply(200)
         .post('/w/api.php', {
             format: 'json',
@@ -978,14 +975,14 @@ describe('update rules', function() {
             },
             query: {
                 pages: {
-                    '12345': {
+                    12345: {
                         transcludedin: common.arrayWithLinks('Transcluded_Here', 2)
                     }
                 }
             }
         })
         .get('/api/rest_v1/page/html/Transcluded_Here')
-        .query({redirect: false})
+        .query({ redirect: false })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
         .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
         .matchHeader('x-restbase-mode', 'templates')
@@ -1006,14 +1003,14 @@ describe('update rules', function() {
             batchcomplete: '',
             query: {
                 pages: {
-                    '12345': {
+                    12345: {
                         transcludedin: common.arrayWithLinks('Transcluded_Here', 1)
                     }
                 }
             }
         })
         .get('/api/rest_v1/page/html/Transcluded_Here')
-        .query({redirect: false})
+        .query({ redirect: false })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
         .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
         .matchHeader('x-restbase-mode', 'templates')
@@ -1039,9 +1036,9 @@ describe('update rules', function() {
         .finally(() => nock.cleanAll());
     });
 
-    function backlinksTest(page_title, topic) {
+    function backlinksTest(pageTitle, topic) {
         const mwAPI = nockWithOptionalSiteInfo()
-            .get(`/api/rest_v1/page/title/${page_title}`)
+            .get(`/api/rest_v1/page/title/${pageTitle}`)
             .query({ redirect: false })
             .optionally()
             .reply(200)
@@ -1049,7 +1046,7 @@ describe('update rules', function() {
                 format: 'json',
                 action: 'query',
                 list: 'backlinks',
-                bltitle: page_title,
+                bltitle: pageTitle,
                 blfilterredir: 'nonredirects',
                 bllimit: '500',
                 formatversion: '2'
@@ -1061,19 +1058,19 @@ describe('update rules', function() {
                     continue: '-||'
                 },
                 query: {
-                    backlinks: common.arrayWithLinks(`Linked_${page_title}`, 2)
+                    backlinks: common.arrayWithLinks(`Linked_${pageTitle}`, 2)
                 }
             })
-            .get(`/api/rest_v1/page/html/Linked_${page_title}`)
+            .get(`/api/rest_v1/page/html/Linked_${pageTitle}`)
             .times(2)
             .query({ redirect: false })
-            .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},${topic}:https://en.wikipedia.org/wiki/SamplePage,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Linked_${page_title}`)
+            .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},${topic}:https://en.wikipedia.org/wiki/SamplePage,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Linked_${pageTitle}`)
             .reply(200)
             .post('/w/api.php', {
                 format: 'json',
                 action: 'query',
                 list: 'backlinks',
-                bltitle: page_title,
+                bltitle: pageTitle,
                 blfilterredir: 'nonredirects',
                 bllimit: '500',
                 blcontinue: '1|2272',
@@ -1082,16 +1079,19 @@ describe('update rules', function() {
             .reply(200, {
                 batchcomplete: '',
                 query: {
-                    backlinks: common.arrayWithLinks(`Linked_${page_title}`, 1)
+                    backlinks: common.arrayWithLinks(`Linked_${pageTitle}`, 1)
                 }
             })
-            .get(`/api/rest_v1/page/html/Linked_${page_title}`)
+            .get(`/api/rest_v1/page/html/Linked_${pageTitle}`)
             .query({ redirect: false })
-            .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},${topic}:https://en.wikipedia.org/wiki/SamplePage,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Linked_${page_title}`)
+            .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},${topic}:https://en.wikipedia.org/wiki/SamplePage,change-prop.backlinks.resource-change:https://en.wikipedia.org/wiki/Linked_${pageTitle}`)
             .reply(200);
 
         return P.try(() => producer.produce(`test_dc.${topic}`, 0,
-            Buffer.from(JSON.stringify(common.eventWithProperties(topic, { page_title })))))
+            Buffer.from(JSON.stringify(common.eventWithProperties(topic,
+                {
+                    page_title: pageTitle
+                })))))
             .then(() => common.checkAPIDone(mwAPI, 50))
             .finally(() => nock.cleanAll());
     }
@@ -1099,7 +1099,6 @@ describe('update rules', function() {
     it('Should process backlinks, on create', () => backlinksTest('On_Create', 'mediawiki.page-create'));
     it('Should process backlinks, on delete', () => backlinksTest('On_Delete', 'mediawiki.page-delete'));
     it('Should process backlinks, on undelete', () => backlinksTest('On_Undelete', 'mediawiki.page-undelete'));
-
 
     it('Should purge caches on resource_change coming from RESTBase', (done) => {
         return testPurgeCacheOnResourceChange(

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const ChangeProp = require('../utils/changeProp');
 const nock = require('nock');
@@ -9,19 +9,19 @@ const P = require('bluebird');
 
 process.env.UV_THREADPOOL_SIZE = 128;
 
-describe('Basic rule management', function() {
+describe('Basic rule management', function () {
     this.timeout(10000);
 
     const changeProp = new ChangeProp('config.test.yaml');
 
     let producer;
 
-    before(function() {
+    before(function () {
         // Setting up might take some tome, so disable the timeout
         this.timeout(30000);
         return changeProp.start()
         .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
-        .then((result) => producer = result);
+        .then((result) => { producer = result; });
     });
 
     it('Should call simple executor', () => {
@@ -35,9 +35,9 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         }).reply({});
 
         return P.each([
@@ -61,16 +61,16 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},simple_test_rule:https://en.wikipedia.org/wiki/SamplePage`)
         .reply(500, {})
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},simple_test_rule:https://en.wikipedia.org/wiki/SamplePage,changeprop.retry.simple_test_rule:https://en.wikipedia.org/wiki/SamplePage`)
         .reply(200, {});
@@ -91,31 +91,31 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},simple_test_rule:https://en.wikipedia.org/wiki/SamplePage`)
         .reply(500, {})
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},simple_test_rule:https://en.wikipedia.org/wiki/SamplePage,changeprop.retry.simple_test_rule:https://en.wikipedia.org/wiki/SamplePage`)
         .reply(500, {})
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},simple_test_rule:https://en.wikipedia.org/wiki/SamplePage,changeprop.retry.simple_test_rule:https://en.wikipedia.org/wiki/SamplePage,changeprop.retry.simple_test_rule:https://en.wikipedia.org/wiki/SamplePage`)
         .reply(500, {})
         // Next one must never get called, we verify that by checking pending mocks
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .reply(500, {});
 
@@ -125,7 +125,7 @@ describe('Basic rule management', function() {
         .finally(() => nock.cleanAll());
     });
 
-    it('Should emit valid retry message', function() {
+    it('Should emit valid retry message', function () {
         this.timeout(10000);
         const random = common.randomString();
         nock('http://mock.com', {
@@ -136,15 +136,15 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .reply(500, {})
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .reply(200, {});
 
@@ -197,16 +197,16 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .reply(404, {})
         // Next one must never get called, we verify that by checking pending mocks
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test',
-            'random_field': random
+            test_field_name: 'test_field_value',
+            derived_field: 'test',
+            random_field: random
         })
         .reply(404, {});
 
@@ -220,7 +220,7 @@ describe('Basic rule management', function() {
         const service = nock('http://mock.com/')
         .get('/will_redirect')
         .reply(301, '', {
-            'location': 'http://mock.com/redirected_resource'
+            location: 'http://mock.com/redirected_resource'
         })
         // Next one must never get called, we verify that by checking pending mocks
         .get('/redirected_resource')
@@ -242,8 +242,8 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test'
+            test_field_name: 'test_field_value',
+            derived_field: 'test'
         })
         .reply(200, {});
 
@@ -265,8 +265,8 @@ describe('Basic rule management', function() {
             }
         })
         .post('/', {
-            'test_field_name': 'test_field_value',
-            'derived_field': 'test'
+            test_field_name: 'test_field_value',
+            derived_field: 'test'
         })
         .times(2).reply({});
 
@@ -335,8 +335,8 @@ describe('Basic rule management', function() {
 
     it('Should support array topics', () => {
         const service = nock('http://mock2.org')
-        .post('/', { 'topic': 'simple_test_rule' }).reply({})
-        .post('/', { 'topic': 'simple_test_rule2' }).reply({});
+        .post('/', { topic: 'simple_test_rule' }).reply({})
+        .post('/', { topic: 'simple_test_rule2' }).reply({});
 
         return producer.produce('test_dc.simple_test_rule',
             0,
@@ -352,7 +352,7 @@ describe('Basic rule management', function() {
 
     it('Should support exclude_topics stanza', () => {
         const service = nock('http://mock2.org')
-        .post('/', { 'topic': 'simple_test_rule3' }).reply({});
+        .post('/', { topic: 'simple_test_rule3' }).reply({});
 
         return producer.produce('test_dc.simple_test_rule3',
             0,
