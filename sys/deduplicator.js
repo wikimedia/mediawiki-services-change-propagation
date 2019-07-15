@@ -123,7 +123,7 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
         .catch((e) => {
             hyper.logger.log('error/dedupe', {
                 message: 'Error during deduplication',
-                error: e
+                err_str: e.toString()
             });
             return NOT_DUPLICATE;
         });
