@@ -22,7 +22,7 @@ function createBackLinksTemplate(options) {
         })),
         getContinueToken: res => res.body.continue && res.body.continue.blcontinue,
         resourceChangeTags: [ 'backlinks' ],
-        leafTopicName: 'change-prop.backlinks.resource-change',
+        leafStreamName: 'change-prop.backlinks.resource-change',
         extractResults: res => res.body.query.backlinks
     };
 }
@@ -42,7 +42,7 @@ function createImageUsageTemplate(options) {
             }
         })),
         getContinueToken: res => res.body.continue && res.body.continue.iucontinue,
-        leafTopicName: 'change-prop.transcludes.resource-change',
+        leafStreamName: 'change-prop.transcludes.resource-change',
         resourceChangeTags: [ 'transcludes', 'files' ],
         extractResults: res =>  res.body.query.imageusage
     };
@@ -64,7 +64,7 @@ function createTranscludeInTemplate(options) {
             }
         })),
         getContinueToken: res => res.body.continue && res.body.continue.ticontinue,
-        leafTopicName: 'change-prop.transcludes.resource-change',
+        leafStreamName: 'change-prop.transcludes.resource-change',
         resourceChangeTags: [ 'transcludes', 'templates' ],
         extractResults: (res) => {
             return res.body.query.pages[Object.keys(res.body.query.pages)[0]].transcludedin;
@@ -85,7 +85,7 @@ function createWikidataTemplate(options) {
             }
         })),
         resourceChangeTags: [ 'wikidata' ],
-        leafTopicName: 'change-prop.wikidata.resource-change',
+        leafStreamName: 'change-prop.wikidata.resource-change',
         shouldProcess: (res) => {
             if (!(res && res.body && !!res.body.success)) {
                 return false;
@@ -114,13 +114,13 @@ function createWikidataTemplate(options) {
     };
 }
 
-function _sendContinueEvent(hyper, topic, origEvent, continueToken) {
+function _sendContinueEvent(hyper, stream, origEvent, continueToken) {
     return hyper.post({
         uri: '/sys/queue/events',
         body: [{
+            $schema: '/change-prop/continue/1.0.0',
             meta: {
-                topic,
-                schema_uri: 'continue/1',
+                stream,
                 uri: origEvent.meta.uri,
                 request_id: origEvent.meta.request_id,
                 domain: origEvent.meta.domain,
@@ -137,7 +137,7 @@ function _sendContinueEvent(hyper, topic, origEvent, continueToken) {
     });
 }
 
-function _sendResourceChanges(hyper, items, originalEvent, tags, topicName) {
+function _sendResourceChanges(hyper, items, originalEvent, tags, streamName) {
     return hyper.post({
         uri: '/sys/queue/events',
         body: items.map((item) => {
@@ -145,9 +145,9 @@ function _sendResourceChanges(hyper, items, originalEvent, tags, topicName) {
             const resourceURI =
                 `https://${item.domain}/wiki/${encodeURIComponent(item.title)}`;
             return {
+                $schema: '/resource_change/1.0.0',
                 meta: {
-                    topic: topicName,
-                    schema_uri: 'resource_change/1',
+                    stream: streamName,
                     uri: resourceURI,
                     request_id: originalEvent.meta.request_id,
                     domain: item.domain,
@@ -227,7 +227,7 @@ class DependencyProcessor {
                 const items = this.wikidataRequest.extractResults(res);
                 return _sendResourceChanges(hyper, items, req.body,
                     this.wikidataRequest.resourceChangeTags,
-                    this.wikidataRequest.leafTopicName);
+                    this.wikidataRequest.leafStreamName);
             }
 
             if (res.body && res.body.error) {
@@ -256,10 +256,10 @@ class DependencyProcessor {
             }
             let actions = _sendResourceChanges(hyper, titles,
                 originalEvent, requestTemplate.resourceChangeTags,
-                requestTemplate.leafTopicName);
+                requestTemplate.leafStreamName);
             if (res.body.continue) {
                 actions = actions.then(() => _sendContinueEvent(hyper,
-                    requestTemplate.leafTopicName,
+                    requestTemplate.leafStreamName,
                     originalEvent,
                     requestTemplate.getContinueToken(res)));
             }
