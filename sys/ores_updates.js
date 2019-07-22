@@ -15,7 +15,15 @@ class OresProcessor {
     }
 
     process(hyper, req) {
-        const message = req.body;
+        let message = req.body;
+        // Temp workaround. ORES requires the '.meta.topic' parameter to be present.
+        if (!message.meta.topic) {
+            // Clone so that we don't break other rules with an unexpected 'topic' key.
+            message = Object.assign({}, message);
+            message.meta = Object.assign({}, message.meta);
+            message.meta.topic = message.meta.stream;
+        }
+        message.meta.topic = message.meta.topic || message.meta.stream;
         return P.all(this._options.ores_precache_uris.map(uri => hyper.post({
             uri,
             headers: {
