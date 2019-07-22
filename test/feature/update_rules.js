@@ -522,7 +522,7 @@ describe('update rules', function () {
     });
 
     it('Should update ORES on revision-create', () => {
-        return common.fetchEventValidator('mediawiki/revision/score')
+        return common.fetchEventValidator('mediawiki/revision/score', '1.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
@@ -548,7 +548,7 @@ describe('update rules', function () {
                     }
                 }
             });
-            const eventBusService = nock('https://eventbus.stubfortests.org')
+            const eventBusService = nock('https://eventgate.stubfortests.org')
             .post('/v1/events', function (body) {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;
@@ -565,7 +565,7 @@ describe('update rules', function () {
     });
 
     it('Should update ORES on revision-create, error', () => {
-        return common.fetchEventValidator('mediawiki/revision/score')
+        return common.fetchEventValidator('mediawiki/revision/score', '1.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
@@ -588,7 +588,7 @@ describe('update rules', function () {
                     }
                 }
             });
-            const eventBusService = nock('https://eventbus.stubfortests.org')
+            const eventBusService = nock('https://eventgate.stubfortests.org')
             .post('/v1/events', function (body) {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;

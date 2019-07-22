@@ -15,7 +15,7 @@ spec: &spec
           options:
             ores_precache_uris:
               - 'https://ores.wikimedia.org/v3/precache'
-            eventbus_uri: 'https://eventbus.stubfortests.org/v1/events'
+            event_service_uri: 'https://eventgate.stubfortests.org/v1/events'
     /sys/limit:
       x-modules:
         - path: sys/rate_limiter.js

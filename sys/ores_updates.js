@@ -7,10 +7,10 @@ class OresProcessor {
     constructor(options) {
         this._options = options;
         if (!options.ores_precache_uris || !Array.isArray(options.ores_precache_uris)) {
-            throw new Error('OresProcessor is miconfigured. ores_precache_uris is required');
+            throw new Error('OresProcessor is misconfigured. ores_precache_uris is required');
         }
-        if (!options.eventbus_uri) {
-            throw new Error('OresProcessor is miconfigured. eventbus_uri is required');
+        if (!options.event_service_uri) {
+            throw new Error('OresProcessor is misconfigured. event_service_uri is required');
         }
     }
 
@@ -29,8 +29,9 @@ class OresProcessor {
             }
             const now = new Date();
             const newMessage = {
+                $schema: '/mediawiki/revision/score/1.0.0',
                 meta: {
-                    topic: 'mediawiki.revision-score',
+                    stream: 'mediawiki.revision-score',
                     uri: message.meta.uri,
                     request_id: message.meta.request_id,
                     id: uuidv1({ msecs: now.getTime() }),
@@ -91,7 +92,7 @@ class OresProcessor {
                 }
             });
             return hyper.post({
-                uri: this._options.eventbus_uri,
+                uri: this._options.event_service_uri,
                 headers: {
                     'content-type': 'application/json'
                 },
