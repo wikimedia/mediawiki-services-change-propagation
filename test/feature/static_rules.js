@@ -154,7 +154,7 @@ describe('Basic rule management', function () {
         .then((retryConsumer) => {
             setTimeout(() => producer.produce('test_dc.simple_test_rule', 0,
                 Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))), 2000);
-            return common.fetchEventValidator('change-prop/retry')
+            return common.fetchEventValidator('change-prop/retry', '1.0.0')
             .then((validate) => {
                 function check() {
                     return retryConsumer.consumeAsync(1)
@@ -286,7 +286,7 @@ describe('Basic rule management', function () {
             setTimeout(() =>
                 producer.produce('test_dc.simple_test_rule', 0, Buffer.from('not_a_json_message')), 2000);
 
-            return common.fetchEventValidator('error')
+            return common.fetchEventValidator('error', '0.0.3')
             .then((validate) => {
                 function check() {
                     return errorConsumer.consumeAsync(1)

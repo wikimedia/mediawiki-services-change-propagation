@@ -23,7 +23,6 @@ class OresProcessor {
             message.meta = Object.assign({}, message.meta);
             message.meta.topic = message.meta.stream;
         }
-        message.meta.topic = message.meta.topic || message.meta.stream;
         return P.all(this._options.ores_precache_uris.map(uri => hyper.post({
             uri,
             headers: {
