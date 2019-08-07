@@ -59,24 +59,6 @@ describe('JobQueue rules', function () {
         .finally(() => nock.cleanAll());
     });
 
-    // TODO: Only needed for eventgate transition to verify both topic and stream are supported. remove.
-    it('Should support partitioned htmlCacheUpdate', () => {
-        const sampleEvent = common.jobs.htmlCacheUpdate;
-        const sampleEventCopy = JSON.parse(JSON.stringify(sampleEvent));
-        sampleEventCopy.meta.topic = 'cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate';
-        const service = nock('http://jobrunner.wikipedia.org', {
-            reqheaders: {
-                host: sampleEvent.meta.domain,
-                'content-type': 'application/json'
-            }
-        })
-        .post('/wiki/Special%3ARunSingleJob', sampleEventCopy)
-        .reply({});
-        return producer.produce('test_dc.mediawiki.job.htmlCacheUpdate', 0, sampleEvent.toBuffer())
-        .then(() => common.checkAPIDone(service))
-        .finally(() => nock.cleanAll());
-    });
-
     it('Should deduplicate based on ID', () => {
         const sampleEvent = common.jobs.updateBetaFeaturesUserCounts;
         const service = nock('http://jobrunner.wikipedia.org', {

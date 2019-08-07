@@ -89,7 +89,7 @@ spec: &spec
         - path: sys/partitioner.js
           options:
             templates:
-              partition_topic: 'cpjobqueue.partitioned.{{message.meta.topic}}'
+              partition_stream: 'cpjobqueue.partitioned.{{message.meta.stream}}'
             partition_key: database
             partition_default: 2
             partition_map:

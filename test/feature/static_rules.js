@@ -340,11 +340,11 @@ describe('Basic rule management', function () {
 
         return producer.produce('test_dc.simple_test_rule',
             0,
-            Buffer.from(JSON.stringify(common.eventWithTopic('simple_test_rule')))
+            Buffer.from(JSON.stringify(common.eventWithStream('simple_test_rule')))
         )
         .then(() => producer.produce('test_dc.simple_test_rule2',
             0,
-            Buffer.from(JSON.stringify(common.eventWithTopic('simple_test_rule2')))
+            Buffer.from(JSON.stringify(common.eventWithStream('simple_test_rule2')))
         ))
         .then(() => common.checkAPIDone(service))
         .finally(() => nock.cleanAll());
@@ -356,7 +356,7 @@ describe('Basic rule management', function () {
 
         return producer.produce('test_dc.simple_test_rule3',
             0,
-            Buffer.from(JSON.stringify(common.eventWithTopic('simple_test_rule3')))
+            Buffer.from(JSON.stringify(common.eventWithStream('simple_test_rule3')))
         )
         .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());

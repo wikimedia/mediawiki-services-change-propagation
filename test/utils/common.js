@@ -17,11 +17,11 @@ common.REQUEST_CHECK_DELAY = 3000;
 
 common.SAMPLE_REQUEST_ID = uuidv1();
 
-common.eventWithProperties = (topic, props) => {
+common.eventWithProperties = (stream, props) => {
     const event = {
         $schema: 'event/1.0.0',
         meta: {
-            topic,
+            stream,
             uri: 'https://en.wikipedia.org/wiki/SamplePage',
             request_id: common.SAMPLE_REQUEST_ID,
             id: uuidv1(),
@@ -37,8 +37,8 @@ common.eventWithMessage = (message) => {
     return common.eventWithProperties('simple_test_rule', { message: message });
 };
 
-common.eventWithTopic = (topic) => {
-    return common.eventWithProperties(topic, {});
+common.eventWithStream = (stream) => {
+    return common.eventWithProperties(stream, {});
 };
 
 common.eventWithMessageAndRandom = (message, random) => {
@@ -158,9 +158,36 @@ const eventMethods = {
     }
 };
 
+const commonMWEvent = (schema, stream, uri, dt) => {
+    const domain = /https?:\/\/([^/]+).+/.exec(uri)[1];
+    const title = /\/([^/]+)$/.exec(uri)[1];
+    return {
+        __proto__: eventMethods,
+        $schema: schema,
+        meta: {
+            stream,
+            uri,
+            request_id: common.SAMPLE_REQUEST_ID,
+            id: uuidv1(),
+            dt,
+            domain
+        },
+        database: 'enwiki',
+        page_title: title,
+        page_id: 12345,
+        page_namespace: 0,
+        performer: {
+            user_text: 'I am a user',
+            user_groups: [ 'I am a group' ],
+            user_is_bot: false
+        }
+    };
+};
+
 common.events = {
     resourceChange(
         uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        stream = 'resource_change',
         dt = new Date().toISOString(),
         tags = [ 'restbase' ]
     ) {
@@ -169,7 +196,7 @@ common.events = {
             __proto__: eventMethods,
             $schema: 'resource_change/1.0.0',
             meta: {
-                stream: 'resource_change',
+                stream,
                 uri,
                 request_id: common.SAMPLE_REQUEST_ID,
                 id: uuidv1(),
@@ -179,36 +206,89 @@ common.events = {
             tags
         };
     },
+    pageDelete(
+        uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        dt = new Date().toISOString()
+    ) {
+        return commonMWEvent(
+            'mediawiki/page/delete/1.0.0',
+            'mediawiki.page-delete',
+            uri,
+            dt
+        );
+    },
+    pageMove(
+        uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        oldTitle = 'New_Title',
+        dt = new Date().toISOString()
+    ) {
+        return Object.assign(commonMWEvent(
+            'mediawiki/page/move/1.0.0',
+            'mediawiki.page-move',
+            uri,
+            dt
+        ), {
+            rev_id: 1234,
+            prior_state: {
+                page_title: oldTitle
+            }
+        });
+    },
+    pagePropertiesChange(
+        uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        dt = new Date().toISOString()
+    ) {
+        return Object.assign(commonMWEvent(
+            'mediawiki/page/properties-change/1.0.0',
+            'mediawiki.page-properties-change',
+            uri,
+            dt
+        ), {
+            added_properties: {
+                page_image: 'Test.jpg'
+            }
+        });
+    },
+    pageUndelete(
+        uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        dt = new Date().toISOString()
+    ) {
+        return commonMWEvent(
+            'mediawiki/page/undelete/1.0.0',
+            'mediawiki.page-undelete',
+            uri,
+            dt
+        );
+    },
     revisionCreate(
         uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
         dt = new Date().toISOString()
     ) {
-        const domain = /https?:\/\/([^/]+).+/.exec(uri)[1];
-        const title = /\/([^/]+)$/.exec(uri)[1];
-        return {
-            __proto__: eventMethods,
-            $schema: 'mediawiki/revision/create/1.0.0',
-            meta: {
-                stream: 'mediawiki.revision-create',
-                uri,
-                request_id: common.SAMPLE_REQUEST_ID,
-                id: uuidv1(),
-                dt,
-                domain
-            },
-            database: 'enwiki',
-            page_title: title,
-            page_id: 12345,
-            page_namespace: 0,
+        return Object.assign(commonMWEvent(
+            'mediawiki/revision/create/1.0.0',
+            'mediawiki.revision-create',
+            uri,
+            dt
+        ), {
+            page_is_redirect: false,
             rev_id: 1234,
             rev_timestamp: new Date().toISOString(),
             rev_parent_id: 1233,
-            performer: {
-                user_text: 'I am a user',
-                user_groups: [ 'I am a group' ],
-                user_is_bot: false
-            }
-        };
+            rev_content_changed: true
+        });
+    },
+    revisionVisibilitySet(
+        uri = 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
+        dt = new Date().toISOString()
+    ) {
+        return Object.assign(commonMWEvent(
+            'mediawiki/revision/visibility-change/1.0.0',
+            'mediawiki.revision-visibility-change',
+            uri,
+            dt
+        ), {
+            rev_id: 1234
+        });
     }
 };
 
@@ -243,6 +323,7 @@ common.jobs = {
         const rootSignature = common.randomString(10);
         return {
             __proto__: eventMethods,
+            $schema: 'mediawiki/job/1.0.0',
             database: 'commonswiki',
             mediawiki_signature: common.randomString(10),
             meta: {
@@ -250,8 +331,7 @@ common.jobs = {
                 dt: new Date().toISOString(),
                 id: uuidv1(),
                 request_id: common.randomString(10),
-                schema_uri: 'mediawiki/job/1',
-                topic: 'mediawiki.job.htmlCacheUpdate',
+                stream: 'mediawiki.job.htmlCacheUpdate',
                 uri: 'https://commons.wikimedia.org/wiki/File:%D0%A1%D1%82%D0%B0%D0%B2%D0%BE%D0%BA_-_panoramio_(6).jpg'
             },
             params: {

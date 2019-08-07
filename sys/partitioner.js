@@ -7,8 +7,8 @@ class Partitioner {
     constructor(options) {
         this._options = options || {};
 
-        if (!options.templates || !options.templates.partition_topic) {
-            throw new Error('No partition_topic template was provided to the partitioner');
+        if (!options.templates || !options.templates.partition_stream) {
+            throw new Error('No partition_stream template was provided to the partitioner');
         }
 
         if (!options.partition_key) {
@@ -23,7 +23,7 @@ class Partitioner {
             throw new Error('No partition_default was provided to the partitioner');
         }
 
-        this._partitionedTopicTemplate = new Template(options.templates.partition_topic);
+        this._partitionedStreamTemplate = new Template(options.templates.partition_stream);
     }
 
     /**
@@ -45,20 +45,9 @@ class Partitioner {
         // in the executor regarding metrics, limiters, follow-up
         // executions etc.
         const event = extend(true, {}, origEvent);
-        // TODO: Temporary workaround for eventgate transition.
-        // Support both meta.topic and meta.stream
-        event.meta.topic = event.meta.stream = event.meta.topic || event.meta.stream;
-        const partitionedTopic = this._partitionedTopicTemplate.expand({
+        event.meta.stream = this._partitionedStreamTemplate.expand({
             message: event
         });
-        event.meta.topic = event.meta.stream = partitionedTopic;
-        // Bring it back to the style that the original event had.
-        if (!origEvent.meta.topic) {
-            delete event.meta.topic;
-        }
-        if (!origEvent.meta.stream) {
-            delete event.meta.stream;
-        }
         return hyper.post({
             uri: `/sys/queue/events/${partition}`,
             body: [ event ]

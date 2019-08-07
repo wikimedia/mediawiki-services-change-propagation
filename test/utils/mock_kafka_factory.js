@@ -51,7 +51,7 @@ class MockConsumer extends EventEmitter {
     disconnectAsync() {}
 
     consumeAsync() {
-        for (let topic of this._topics) {
+        for (const topic of this._topics) {
             if (this._messages.has(topic)) {
                 const topicMessages = this._messages.get(topic);
                 const currentTopicOffset = this._getCurrentOffset(topic);

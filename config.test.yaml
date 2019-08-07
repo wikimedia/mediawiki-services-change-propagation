@@ -117,7 +117,7 @@ spec: &spec
                   method: post
                   uri: 'http://mock2.org'
                   body:
-                    topic: '{{message.meta.topic}}'
+                    topic: '{{message.meta.stream}}'
 num_workers: 0
 logging:
   name: changeprop
