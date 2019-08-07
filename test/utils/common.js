@@ -303,7 +303,7 @@ common.jobs = {
         };
     },
     get cdnPurge() {
-        const releaseTimestamp = Date.now() / 1000 + 3;
+        const releaseTimestamp = new Date(Date.now() + 3000).toISOString();
         return {
             __proto__: eventMethods,
             $schema: 'mediawiki/job/1.0.0',
