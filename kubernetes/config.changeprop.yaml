@@ -174,8 +174,8 @@ spec: &spec
                 topic: change-prop.transcludes.resource-change
                 cases:
                   - match:
+                      $schema: '/^\/resource_change\/.*/'
                       meta:
-                        schema_uri: 'resource_change/1'
                         uri: '/https?:\/\/[^\/]+\/wiki\/(?<title>.+)/'
                       tags: [ 'transcludes' ]
                     exec:
@@ -188,8 +188,7 @@ spec: &spec
                       query:
                         redirect: false
                   - match:
-                      meta:
-                        schema_uri: 'continue/1'
+                      $schema: '/^\/change-prop\/continue\/.*/'
                     exec:
                       method: post
                       uri: '/sys/links/transcludes/{message.original_event.page_title}'

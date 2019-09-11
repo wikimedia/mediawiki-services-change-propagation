@@ -2,7 +2,6 @@
 
 const ChangeProp = require('../utils/changeProp');
 const nock       = require('nock');
-const uuidv1     = require('uuid/v1');
 const common     = require('../utils/common');
 const dgram      = require('dgram');
 const assert     = require('assert');
@@ -62,19 +61,9 @@ describe('update rules', function () {
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce(`test_dc.${topic}`, 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: topic,
-                    schema_uri: 'resource_change/1',
-                    uri: 'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                tags: ['restbase']
-            }))))
+        return P.try(() => producer.produce(`test_dc.${topic}`, 0, common.events.resourceChange(
+            'https://en.wikipedia.org/api/rest_v1/page/html/Main_Page', topic
+        ).toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     }
@@ -100,18 +89,11 @@ describe('update rules', function () {
         udpServer.bind(4321);
 
         P.try(() => producer.produce('test_dc.resource_change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'resource_change',
-                    schema_uri: 'resource_change/1',
-                    uri: uriBefore,
-                    request_id: uuidv1(),
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain
-                },
-                tags
-            }))))
+            common.events.resourceChange(
+                uriBefore,
+                'resource_change',
+                new Date().toISOString(),
+                tags).toBuffer()))
         .delay(common.REQUEST_CHECK_DELAY)
         .finally(() => {
             if (!closed) {
@@ -128,33 +110,19 @@ describe('update rules', function () {
         summaryEndpointTest('change-prop.transcludes.resource-change'));
 
     it('Should update summary endpoint on page images change', () => {
+        const SAMPLE_EVENT = common.events.pagePropertiesChange('https://en.wikipedia.org/wiki/Some_Page');
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-properties-change:https://en.wikipedia.org/wiki/Some_Page`,
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-properties-change:${SAMPLE_EVENT.meta.uri}`,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/summary/Some_Page')
+        .get(`/api/rest_v1/page/summary/${SAMPLE_EVENT.page_title}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.page-properties-change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.page-properties-change',
-                    schema_uri: 'mediawiki/page/properties-change/1',
-                    uri: 'https://en.wikipedia.org/wiki/Some_Page',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                added_properties: {
-                    page_image: 'Test.jpg'
-                },
-                page_title: 'Some_Page'
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.page-properties-change', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
@@ -171,19 +139,9 @@ describe('update rules', function () {
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.resource_change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'resource_change',
-                    schema_uri: 'resource_change/1',
-                    uri: 'https://en.wikipedia.org/api/rest_v1/page/html/User%3ACyberbot_I%2FTest',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                tags: ['restbase']
-            }))))
+        return P.try(() => producer.produce('test_dc.resource_change', 0, common.events.resourceChange(
+            'https://en.wikipedia.org/api/rest_v1/page/html/User%3ACyberbot_I%2FTest'
+        ).toBuffer()))
         .then(() => common.checkPendingMocks(mwAPI, 1))
         .finally(() => nock.cleanAll());
     });
@@ -200,19 +158,9 @@ describe('update rules', function () {
         .query({ redirect: false })
         .reply(200, {});
 
-        return P.try(() => producer.produce('test_dc.resource_change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'resource_change',
-                    schema_uri: 'resource_change/1',
-                    uri: 'https://en.wiktionary.org/api/rest_v1/page/html/Main_Page',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wiktionary.org'
-                },
-                tags: ['restbase']
-            }))))
+        return P.try(() => producer.produce('test_dc.resource_change', 0, common.events.resourceChange(
+            'https://en.wiktionary.org/api/rest_v1/page/html/Main_Page'
+        ).toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
@@ -223,19 +171,9 @@ describe('update rules', function () {
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.resource_change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'resource_change',
-                    schema_uri: 'resource_change/1',
-                    uri: 'https://en.wiktionary.org/api/rest_v1/page/html/Main_Page/12345',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wiktionary.org'
-                },
-                tags: ['restbase']
-            }))))
+        return P.try(() => producer.produce('test_dc.resource_change', 0, common.events.resourceChange(
+            'https://en.wiktionary.org/api/rest_v1/page/html/Main_Page/12345'
+        ).toBuffer()))
         .then(() => common.checkPendingMocks(mwAPI, 1))
         .finally(() => nock.cleanAll());
     });
@@ -291,6 +229,7 @@ describe('update rules', function () {
         return P.try(() => producer.produce('test_dc.resource_change', 0,
             common.events.resourceChange(
                 'https://en.wikipedia.org/wiki/Main_Page',
+                'resource_change',
                 '1990-02-20T19:31:13+00:00',
                 ['purge']
             ).toBuffer()))
@@ -299,224 +238,142 @@ describe('update rules', function () {
     });
 
     it('Should update RESTBase on revision create', () => {
+        const SAMPLE_DATE = 'Thu, 01 Jan 1970 00:00:01 +0000';
+        const SAMPLE_EVENT = common.events.revisionCreate(
+            'https://en.wikipedia.org/wiki/SamplePage',
+            SAMPLE_DATE
+        );
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:/edit/uri`,
-                'x-restbase-parentrevision': '1233',
-                'if-unmodified-since': 'Thu, 01 Jan 1970 00:00:01 +0000',
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:${SAMPLE_EVENT.meta.uri}`,
+                'x-restbase-parentrevision': `${SAMPLE_EVENT.rev_parent_id}`,
+                'if-unmodified-since': SAMPLE_DATE,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/html/User%3APchelolo%2FTest/1234')
+        .get(`/api/rest_v1/page/html/${SAMPLE_EVENT.page_title}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/edit/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date(1000).toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'User:Pchelolo/Test',
-                rev_id: 1234,
-                rev_timestamp: new Date().toISOString(),
-                rev_parent_id: 1233,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
 
     it('Should not update RESTBase on revision create for a blacklisted title', () => {
+        const SAMPLE_DATE = 'Thu, 01 Jan 1970 00:00:01 +0000';
+        const SAMPLE_EVENT = common.events.revisionCreate(
+            'https://en.wikipedia.org/wiki/User:Nolelover',
+            SAMPLE_DATE
+        );
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/User:Nolelover`,
-                'x-restbase-parentrevision': '1233',
-                'if-unmodified-since': 'Thu, 01 Jan 1970 00:00:01 +0000',
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:${SAMPLE_EVENT.meta.uri}`,
+                'x-restbase-parentrevision': `${SAMPLE_EVENT.rev_parent_id}`,
+                'if-unmodified-since': SAMPLE_DATE,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/html/User%3ANolelover/1234')
+        .get(`/api/rest_v1/page/html/${encodeURIComponent(SAMPLE_EVENT.page_title)}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: 'https://en.wikipedia.org/wiki/User:Nolelover',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date(1000).toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'User:Nolelover',
-                rev_id: 1234,
-                rev_timestamp: new Date().toISOString(),
-                rev_parent_id: 1233,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkPendingMocks(mwAPI, 1))
         .finally(() => nock.cleanAll());
     });
 
     it('Should not update RESTBase on revision create for wikidata', () => {
+        const SAMPLE_EVENT = common.events.revisionCreate('https://www.wikidata.org/wiki/Q1');
         const mwAPI = nock('https://www.wikidata.org')
-        .get('/api/rest_v1/page/html/Q1/1234')
+        .get(`/api/rest_v1/page/html/${SAMPLE_EVENT.page_title}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/edit/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date(1000).toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Q1',
-                rev_id: 1234,
-                rev_timestamp: new Date().toISOString(),
-                rev_parent_id: 1233,
-                page_namespace: 0,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkPendingMocks(mwAPI, 1))
         .finally(() => nock.cleanAll());
     });
 
     it('Should update RESTBase on page delete', () => {
+        const SAMPLE_EVENT = common.events.pageDelete('https://en.wikipedia.org/wiki/User:Pchelolo');
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-delete:/delete/uri`,
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-delete:${SAMPLE_EVENT.meta.uri}`,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
+        .get(`/api/rest_v1/page/title/${encodeURIComponent(SAMPLE_EVENT.page_title)}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.page-delete', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.page-delete',
-                    schema_uri: 'page_delete/1',
-                    uri: '/delete/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'User:Pchelolo/Test'
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.page-delete', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
 
     it('Should update RESTBase on page undelete', () => {
+        const SAMPLE_EVENT = common.events.pageUndelete('https://en.wikipedia.org/wiki/User:Pchelolo');
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-undelete:/restore/uri`,
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-undelete:${SAMPLE_EVENT.meta.uri}`,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
+        .get(`/api/rest_v1/page/title/${encodeURIComponent(SAMPLE_EVENT.page_title)}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.page-undelete', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.page-undelete',
-                    schema_uri: 'page_restore/1',
-                    uri: '/restore/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'User:Pchelolo/Test'
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.page-delete', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
 
     it('Should update RESTBase on page move', () => {
+        const SAMPLE_DATE = 'Thu, 01 Jan 1970 00:00:01 +0000';
+        const SAMPLE_EVENT = common.events.pageMove(
+            'https://en.wikipedia.org/wiki/SamplePage',
+            'OldTitle',
+            SAMPLE_DATE
+        );
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-move:/move/uri`,
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-move:${SAMPLE_EVENT.meta.uri}`,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/html/User%3APchelolo%2FTest1/2')
-        .matchHeader('if-unmodified-since', 'Thu, 01 Jan 1970 00:00:01 +0000')
+        .get(`/api/rest_v1/page/html/${SAMPLE_EVENT.page_title}/${SAMPLE_EVENT.rev_id}`)
+        .matchHeader('if-unmodified-since', SAMPLE_DATE)
         .query({ redirect: false })
         .reply(200, { })
-        .get('/api/rest_v1/page/title/User%3APchelolo%2FTest')
+        .get(`/api/rest_v1/page/title/${SAMPLE_EVENT.prior_state.page_title}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.page-move', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.page-move',
-                    schema_uri: 'page_move/1',
-                    uri: '/move/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date(1000).toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'User:Pchelolo/Test1',
-                rev_id: 2,
-                prior_state: {
-                    page_title: 'User:Pchelolo/Test'
-                }
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.page-move', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
 
     it('Should update RESTBase on revision visibility change', () => {
+        const SAMPLE_EVENT = common.events.revisionVisibilitySet('https://en.wikipedia.org/wiki/Foo');
         const mwAPI = nock('https://en.wikipedia.org', {
             reqheaders: {
                 'cache-control': 'no-cache',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-visibility-change:/rev/uri`,
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-visibility-change:${SAMPLE_EVENT.meta.uri}`,
                 'user-agent': 'SampleChangePropInstance'
             }
         })
-        .get('/api/rest_v1/page/title/Foo/1234')
+        .get(`/api/rest_v1/page/title/${SAMPLE_EVENT.page_title}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-visibility-change', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-visibility-change',
-                    schema_uri: 'revision_visibility_set/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'Foo',
-                rev_id: 1234
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-visibility-change', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI))
         .finally(() => nock.cleanAll());
     });
@@ -604,77 +461,15 @@ describe('update rules', function () {
         });
     });
 
-    it('Should update RESTBase summary and mobile-sections on wikidata description change', () => {
+    const wikidataDescriptionTest = (stream, eventFactory, eventComment) => {
+        const SAMPLE_EVENT = eventFactory('https://www.wikidata.org/wiki/Q1');
+        SAMPLE_EVENT.comment = eventComment;
         const wikidataAPI = nock('https://www.wikidata.org')
         .post('/w/api.php', {
             format: 'json',
             formatversion: '2',
             action: 'wbgetentities',
-            ids: 'Q1',
-            props: 'sitelinks/urls',
-            normalize: 'true'
-        })
-        .reply(200, {
-            success: 1,
-            entities: {
-                Q1: {
-                    type: 'item',
-                    id: 'Q1',
-                    sitelinks: {
-                        enwiki: {
-                            site: 'ruwiki',
-                            title: 'Пётр',
-                            badges: [],
-                            url: 'https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
-                        }
-                    }
-                }
-            }
-        });
-
-        const restbase = nock('https://ru.wikipedia.org', {
-            reqheaders: {
-                'cache-control': 'no-cache',
-                'user-agent': 'SampleChangePropInstance',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:/rev/uri,change-prop.wikidata.resource-change:https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80`
-            }
-        })
-        .get('/api/rest_v1/page/summary/%D0%9F%D1%91%D1%82%D1%80')
-        .query({ redirect: false })
-        .reply(200, { })
-        .get('/api/rest_v1/page/mobile-sections/%D0%9F%D1%91%D1%82%D1%80')
-        .query({ redirect: false })
-        .reply(200, { });
-
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Q1',
-                page_namespace: 0,
-                comment: '/* wbeditentity-update:0| */ add [it] label',
-                rev_content_changed: true
-            }))))
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => common.checkAPIDone(wikidataAPI))
-        .then(() => common.checkAPIDone(restbase))
-        .finally(() => nock.cleanAll());
-    });
-
-    it('Should update RESTBase summary and mobile-sections on wikidata description revert', () => {
-        const wikidataAPI = nock('https://www.wikidata.org')
-        .post('/w/api.php', {
-            format: 'json',
-            formatversion: '2',
-            action: 'wbgetentities',
-            ids: 'Q1',
+            ids: SAMPLE_EVENT.page_title,
             props: 'sitelinks/urls',
             normalize: 'true'
         })
@@ -701,7 +496,7 @@ describe('update rules', function () {
                 'cache-control': 'no-cache',
                 'x-request-id': common.SAMPLE_REQUEST_ID,
                 'user-agent': 'SampleChangePropInstance',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:/rev/uri,change-prop.wikidata.resource-change:https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80`
+                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},${stream}:${SAMPLE_EVENT.meta.uri},change-prop.wikidata.resource-change:https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80`
             }
         })
         .get('/api/rest_v1/page/summary/%D0%9F%D1%91%D1%82%D1%80')
@@ -711,97 +506,44 @@ describe('update rules', function () {
         .query({ redirect: false })
         .reply(200, { });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Q1',
-                page_namespace: 0,
-                comment: '/* undo */ Undo revision 440223057 by Mhollo',
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce(`test_dc.${stream}`, 0, SAMPLE_EVENT.toBuffer()))
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => common.checkAPIDone(wikidataAPI))
         .then(() => common.checkAPIDone(restbase))
         .finally(() => nock.cleanAll());
-    });
+    };
 
-    it('Should update RESTBase summary and mobile-sections on wikidata undelete', () => {
-        const wikidataAPI = nock('https://www.wikidata.org')
-        .post('/w/api.php', {
-            format: 'json',
-            formatversion: '2',
-            action: 'wbgetentities',
-            ids: 'Q2',
-            props: 'sitelinks/urls',
-            normalize: 'true'
-        })
-        .reply(200, {
-            success: 1,
-            entities: {
-                Q2: {
-                    type: 'item',
-                    id: 'Q2',
-                    sitelinks: {
-                        enwiki: {
-                            site: 'ruwiki',
-                            title: 'Пётр',
-                            badges: [],
-                            url: 'https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80'
-                        }
-                    }
-                }
-            }
-        });
+    it('Should update RESTBase summary and mobile-sections on wikidata description change', () =>
+        wikidataDescriptionTest(
+            'mediawiki.revision-create',
+            common.events.revisionCreate.bind(common.events),
+            '/* wbeditentity-update:0| */ add [it] label'
+        ));
 
-        const restbase = nock('https://ru.wikipedia.org', {
-            reqheaders: {
-                'cache-control': 'no-cache',
-                'user-agent': 'SampleChangePropInstance',
-                'x-triggered-by': `req:${common.SAMPLE_REQUEST_ID},mediawiki.page-undelete:/rev/uri,change-prop.wikidata.resource-change:https://ru.wikipedia.org/wiki/%D0%9F%D1%91%D1%82%D1%80`
-            }
-        })
-        .get('/api/rest_v1/page/summary/%D0%9F%D1%91%D1%82%D1%80')
-        .query({ redirect: false })
-        .reply(200, { })
-        .get('/api/rest_v1/page/mobile-sections/%D0%9F%D1%91%D1%82%D1%80')
-        .query({ redirect: false })
-        .reply(200, { });
+    it('Should update RESTBase summary and mobile-sections on wikidata description revert', () =>
+        wikidataDescriptionTest(
+            'mediawiki.revision-create',
+            common.events.revisionCreate.bind(common.events),
+            '/* undo */ Undo revision 440223057 by Mhollo'
+        ));
 
-        return P.try(() => producer.produce('test_dc.mediawiki.page-undelete', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.page-undelete',
-                    schema_uri: 'page-undelet/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Q2',
-                page_namespace: 0
-            }))))
-        .delay(common.REQUEST_CHECK_DELAY)
-        .then(() => common.checkAPIDone(wikidataAPI))
-        .then(() => common.checkAPIDone(restbase))
-        .finally(() => nock.cleanAll());
-    });
+    it('Should update RESTBase summary and mobile-sections on wikidata undelete', () =>
+        wikidataDescriptionTest(
+            'mediawiki.page-undelete',
+            common.events.pageUndelete.bind(common.events),
+            '/* undo */ Undo revision 440223057 by Mhollo'
+        ));
 
     it('Should not ask Wikidata for info for non-main namespace titles', () => {
+        const SAMPLE_EVENT = common.events.revisionCreate('https://www.wikidata.org/wiki/Property:P1');
+        SAMPLE_EVENT.page_namespace = 3;
+        SAMPLE_EVENT.comment = '/* wbeditentity-update:0| */ add [it] label';
         const wikidataAPI = nock('https://www.wikidata.org')
         .post('/w/api.php', {
             format: 'json',
             formatversion: '2',
             action: 'wbgetentities',
-            ids: 'Property:P1',
+            ids: SAMPLE_EVENT.page_title,
             props: 'sitelinks/urls',
             normalize: 'true'
         })
@@ -819,33 +561,21 @@ describe('update rules', function () {
             }
         });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Property:P1',
-                page_namespace: 3,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => common.checkPendingMocks(wikidataAPI, 1))
         .finally(() => nock.cleanAll());
     });
 
     it('Should not crash if wikidata description can not be found', () => {
+        const SAMPLE_EVENT = common.events.revisionCreate('https://www.wikidata.org/wiki/Q2');
+        SAMPLE_EVENT.comment = '/* wbeditentity-update:0| */ add [it] label';
         const wikidataAPI = nock('https://www.wikidata.org')
         .post('/w/api.php', {
             format: 'json',
             formatversion: '2',
             action: 'wbgetentities',
-            ids: 'Q2',
+            ids: SAMPLE_EVENT.page_title,
             props: 'sitelinks/urls',
             normalize: 'true'
         })
@@ -859,37 +589,27 @@ describe('update rules', function () {
             success: 1
         });
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'revision-create/1',
-                    uri: '/rev/uri',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: new Date().toISOString(),
-                    domain: 'www.wikidata.org'
-                },
-                page_title: 'Q2',
-                page_namespace: 0,
-                comment: '/* wbeditentity-update:0| */ add [it] label',
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .delay(common.REQUEST_CHECK_DELAY)
         .then(() => common.checkAPIDone(wikidataAPI))
         .finally(() => nock.cleanAll());
     });
 
     it('Should rerender image usages on file update', () => {
+        const SAMPLE_DATE = 'Tue, 20 Feb 1990 19:31:13 +0000';
+        const SAMPLE_EVENT = common.events.revisionCreate(
+            'https://en.wikipedia.org/wiki/File:SamplePage',
+            SAMPLE_DATE
+        );
         const mwAPI = nockWithOptionalSiteInfo()
-        .get('/api/rest_v1/page/html/File%3APchelolo%2FTest.jpg/112233')
+        .get(`/api/rest_v1/page/html/${encodeURIComponent(SAMPLE_EVENT.page_title)}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200)
         .post('/w/api.php', {
             format: 'json',
             action: 'query',
             list: 'imageusage',
-            iutitle: 'File:Pchelolo/Test.jpg',
+            iutitle: SAMPLE_EVENT.page_title,
             iulimit: '500',
             formatversion: '2'
         })
@@ -905,8 +625,8 @@ describe('update rules', function () {
         })
         .get('/api/rest_v1/page/html/File_Transcluded_Page')
         .query({ redirect: false })
-        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
-        .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
+        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:${SAMPLE_EVENT.meta.uri},change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
+        .matchHeader('if-unmodified-since', SAMPLE_DATE)
         .matchHeader('x-restbase-mode', 'files')
         .times(2)
         .reply(200)
@@ -914,7 +634,7 @@ describe('update rules', function () {
             format: 'json',
             action: 'query',
             list: 'imageusage',
-            iutitle: 'File:Pchelolo/Test.jpg',
+            iutitle: SAMPLE_EVENT.page_title,
             iulimit: '500',
             iucontinue: '1|2272',
             formatversion: '2'
@@ -927,34 +647,24 @@ describe('update rules', function () {
         })
         .get('/api/rest_v1/page/html/File_Transcluded_Page')
         .query({ redirect: false })
-        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
-        .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
+        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:${SAMPLE_EVENT.meta.uri},change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/File_Transcluded_Page`)
+        .matchHeader('if-unmodified-since', SAMPLE_DATE)
         .matchHeader('x-restbase-mode', 'files')
         .reply(200);
 
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'schema/1',
-                    uri: 'https://en.wikipedia.org/wiki/SamplePage',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: '1990-02-20T19:31:13+00:00',
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'File:Pchelolo/Test.jpg',
-                rev_parent_id: 12345, // Needed to avoid backlinks updates firing and interfering
-                rev_id: 112233,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI, 50))
         .finally(() => nock.cleanAll());
     });
 
     it('Should rerender transclusions on page update', () => {
+        const SAMPLE_DATE = 'Tue, 20 Feb 1990 19:31:13 +0000';
+        const SAMPLE_EVENT = common.events.revisionCreate(
+            'https://en.wikipedia.org/wiki/SamplePage',
+            '1990-02-20T19:31:13+00:00'
+        );
         const mwAPI = nockWithOptionalSiteInfo()
-        .get('/api/rest_v1/page/html/Test_Page/112233')
+        .get(`/api/rest_v1/page/html/${SAMPLE_EVENT.page_title}/${SAMPLE_EVENT.rev_id}`)
         .query({ redirect: false })
         .reply(200)
         .post('/w/api.php', {
@@ -964,7 +674,7 @@ describe('update rules', function () {
             prop: 'transcludedin',
             tiprop: 'title',
             tishow: '!redirect',
-            titles: 'Test_Page',
+            titles: SAMPLE_EVENT.page_title,
             tilimit: '500'
         })
         .reply(200, {
@@ -983,8 +693,8 @@ describe('update rules', function () {
         })
         .get('/api/rest_v1/page/html/Transcluded_Here')
         .query({ redirect: false })
-        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
-        .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
+        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/${SAMPLE_EVENT.page_title},change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
+        .matchHeader('if-unmodified-since', SAMPLE_DATE)
         .matchHeader('x-restbase-mode', 'templates')
         .times(2)
         .reply(200)
@@ -995,7 +705,7 @@ describe('update rules', function () {
             prop: 'transcludedin',
             tiprop: 'title',
             tishow: '!redirect',
-            titles: 'Test_Page',
+            titles: SAMPLE_EVENT.page_title,
             tilimit: '500',
             ticontinue: '1|2272'
         })
@@ -1011,27 +721,11 @@ describe('update rules', function () {
         })
         .get('/api/rest_v1/page/html/Transcluded_Here')
         .query({ redirect: false })
-        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/SamplePage,change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
-        .matchHeader('if-unmodified-since', 'Tue, 20 Feb 1990 19:31:13 +0000')
+        .matchHeader('x-triggered-by', `req:${common.SAMPLE_REQUEST_ID},mediawiki.revision-create:https://en.wikipedia.org/wiki/${SAMPLE_EVENT.page_title},change-prop.transcludes.resource-change:https://en.wikipedia.org/wiki/Transcluded_Here`)
+        .matchHeader('if-unmodified-since', SAMPLE_DATE)
         .matchHeader('x-restbase-mode', 'templates')
         .reply(200);
-
-        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0,
-            Buffer.from(JSON.stringify({
-                meta: {
-                    topic: 'mediawiki.revision-create',
-                    schema_uri: 'schema/1',
-                    uri: 'https://en.wikipedia.org/wiki/SamplePage',
-                    request_id: common.SAMPLE_REQUEST_ID,
-                    id: uuidv1(),
-                    dt: '1990-02-20T19:31:13+00:00',
-                    domain: 'en.wikipedia.org'
-                },
-                page_title: 'Test_Page',
-                rev_parent_id: 12345, // Needed to avoid backlinks updates firing and interfering
-                rev_id: 112233,
-                rev_content_changed: true
-            }))))
+        return P.try(() => producer.produce('test_dc.mediawiki.revision-create', 0, SAMPLE_EVENT.toBuffer()))
         .then(() => common.checkAPIDone(mwAPI, 50))
         .finally(() => nock.cleanAll());
     });

@@ -15,7 +15,7 @@ class OresProcessor {
     }
 
     process(hyper, req) {
-        let message = req.body;
+        const message = req.body;
         return P.all(this._options.ores_precache_uris.map(uri => hyper.post({
             uri,
             headers: {
@@ -42,6 +42,7 @@ class OresProcessor {
                 page_id: message.page_id,
                 page_title: message.page_title,
                 page_namespace: message.page_namespace,
+                page_is_redirect: message.page_is_redirect,
                 performer: message.performer,
                 rev_id: message.rev_id,
                 rev_parent_id: message.rev_parent_id,
