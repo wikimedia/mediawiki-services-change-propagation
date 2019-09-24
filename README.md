@@ -91,6 +91,13 @@ Before starting the development version of change propagation or running
 test you need to start Zookeeper and Kafka with `start-kafka` npm script.
 To stop Kafka and Zookeeper tun `stop-kafka` npm script.
 
+#### Testing against local schemas
+To run tests against local schemas simply set `DEV_BASE_URI` to the directory of the schemas:
+
+```bash
+export DEV_BASE_URI=<directory_of_schemas>
+npm test
+```
 ## Running locally
 
 To run the service locally, you need to have to have kafka and zookeeper installed
