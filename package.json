@@ -17,8 +17,7 @@
     "integration": "export UV_THREADPOOL_SIZE=128 && npm run lint && npm run cleanup && mocha",
     "lint": "eslint --cache --max-warnings 0 --ext .js .",
     "coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && nyc --reporter=lcov mocha",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "postinstall": "$(npm bin)/jsonschema-tools install-git-hook"
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "keywords": [
     "REST",

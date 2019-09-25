@@ -1,14 +1,14 @@
 'use strict';
 
-const uuidv1            = require('uuid/v1');
-const P                 = require('bluebird');
-const kafkaFactory      = require('../../lib/kafka_factory');
-const MockFactory       = require('./mock_kafka_factory');
-const assert            = require('assert');
-const preq              = require('preq');
-const Ajv               = require('ajv');
-const mockRequire       = require('mock-require');
-const { getSchemaById } = require('@wikimedia/jsonschema-tools');
+const uuidv1       = require('uuid/v1');
+const P            = require('bluebird');
+const kafkaFactory = require('../../lib/kafka_factory');
+const MockFactory  = require('./mock_kafka_factory');
+const assert       = require('assert');
+const preq         = require('preq');
+const yaml         = require('js-yaml');
+const Ajv          = require('ajv');
+const mockRequire  = require('mock-require');
 
 const common = {};
 
@@ -128,17 +128,32 @@ common.fetchEventValidator = (schemaUri, version = 1) => {
     if (validatorCache.has(schemaPath)) {
         return P.resolve(validatorCache.get(schemaPath));
     }
-    const { DEV_BASE_URI } = process.env;
-    const defaultURI = 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/';
 
-    const options = DEV_BASE_URI ? { schemaBaseUris: [DEV_BASE_URI] } : { schemaBaseUris: [defaultURI] };
+    // getSchemaById() uses async/await which is not supported by Node 6
+    // Remove fallback once Node 6 support is dropped
+    try {
+        const { getSchemaById } = require('@wikimedia/jsonschema-tools');
+        const { DEV_BASE_URI } = process.env;
+        const defaultURI = 'https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/';
 
-    return getSchemaById(schemaPath, options)
-    .then((res) => ajv.compileAsync(res))
-    .then((validator) => {
-        validatorCache.set(schemaPath, validator);
-        return validator;
-    });
+        const options = DEV_BASE_URI ? { schemaBaseUris: [DEV_BASE_URI] } : { schemaBaseUris: [defaultURI] };
+
+        return getSchemaById(schemaPath, options)
+        .then((res) => ajv.compileAsync(res))
+        .then((validator) => {
+            validatorCache.set(schemaPath, validator);
+            return validator;
+        });
+    } catch (e) {
+        return preq.get({
+            uri: `https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/${schemaPath}`
+        })
+        .then((res) => ajv.compileAsync(yaml.safeLoad(res.body)))
+        .then((validator) => {
+            validatorCache.set(schemaPath, validator);
+            return validator;
+        });
+    }
 };
 
 common.getKafkaFactory = kafkaFactory.getFactory;
