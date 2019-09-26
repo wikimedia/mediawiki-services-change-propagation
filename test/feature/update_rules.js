@@ -379,7 +379,7 @@ describe('update rules', function () {
     });
 
     it('Should update ORES on revision-create', () => {
-        return common.fetchEventValidator('mediawiki/revision/score', '1.0.0')
+        return common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
@@ -422,7 +422,7 @@ describe('update rules', function () {
     });
 
     it('Should update ORES on revision-create, error', () => {
-        return common.fetchEventValidator('mediawiki/revision/score', '1.0.0')
+        return common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
