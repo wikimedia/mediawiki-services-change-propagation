@@ -1,6 +1,6 @@
 {
   "name": "change-propagation",
-  "version": "0.9.4",
+  "version": "0.9.6",
   "description": "Listens to events from Kafka and delivers them",
   "main": "server.js",
   "repository": {
@@ -44,10 +44,10 @@
     "hyperswitch": "^0.12.4",
     "mediawiki-title": "^0.6.5",
     "murmur-32": "^0.1.0",
-    "node-rdkafka": "2.3.1",
+    "node-rdkafka": "2.6.1",
     "ratelimit.js": "^1.8.0",
     "redis": "^2.8.0",
-    "service-runner": "^2.7.1",
+    "service-runner": "^2.7.7",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
@@ -63,7 +63,7 @@
     "mock-require": "^3.0.3",
     "nock": "^10.0.6",
     "nyc": "^13.3.0",
-    "preq": "^0.5.7",
+    "preq": "^0.5.14",
     "redis-mock": "^0.43.0"
   },
   "engines": {
