@@ -7,7 +7,7 @@
 const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require('uuid').v1;
 
 const utils = require('../lib/utils');
 const kafkaFactory = require('../lib/kafka_factory');

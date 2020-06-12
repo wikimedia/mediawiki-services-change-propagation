@@ -1,6 +1,6 @@
 'use strict';
 
-const uuidv1       = require('uuid/v1');
+const uuidv1       = require('uuid').v1;
 const P            = require('bluebird');
 const kafkaFactory = require('../../lib/kafka_factory');
 const MockFactory  = require('./mock_kafka_factory');
