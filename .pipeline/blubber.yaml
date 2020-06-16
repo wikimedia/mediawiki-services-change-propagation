@@ -4,11 +4,11 @@ lives:
   in: /srv/service
 runs:
   environment: { APP_BASE_PATH: /srv/service }
-apt: { packages: [libsasl2-2] }
+apt: { packages: [libssl1.1] }
 
 variants:
   build:
-    apt: { packages: [build-essential, python-dev, git, libsasl2-dev] }
+    apt: { packages: [build-essential, python-dev, git, libssl-dev] }
     base: docker-registry.wikimedia.org/nodejs10-devel
     copies: [local]
     node: { requirements: [package.json]}
