@@ -4,6 +4,7 @@ lives:
   in: /srv/service
 runs:
   environment: { APP_BASE_PATH: /srv/service }
+apt: { packages: [libsasl2-2] }
 
 variants:
   build:
