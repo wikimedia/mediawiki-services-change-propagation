@@ -58,7 +58,7 @@ class Kafka {
             return { status: 202 };
         }
 
-        const partition = req.params.partition || 0;
+        const partition = req.params.partition || null;
         const messages = req.body;
         if (!Array.isArray(messages) || !messages.length) {
             throw new HTTPError({
