@@ -1,0 +1,32 @@
+{
+	"extends": "eslint-config-wikimedia/server",
+	"rules": {
+		"camelcase": [
+			"error",
+			{
+				"properties": "never"
+			}
+		],
+		"indent": [
+			"off",
+			4
+		],
+		"no-underscore-dangle": "off",
+		"no-unused-vars": [
+			"error",
+			{
+				"args": "none"
+			}
+		],
+		"space-in-parens": [
+			"error",
+			"never"
+		],
+		"no-restricted-syntax": "off",
+		"array-bracket-spacing": "off",
+		"computed-property-spacing": "off",
+		"arrow-parens": "off",
+		"no-multi-spaces": "off",
+		"jsdoc/no-undefined-types": "off"
+	}
+}
