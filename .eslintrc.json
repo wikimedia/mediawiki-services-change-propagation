@@ -1,4 +1,5 @@
 {
+	"root": true,
 	"extends": "eslint-config-wikimedia/server",
 	"rules": {
 		"camelcase": [
@@ -27,6 +28,7 @@
 		"computed-property-spacing": "off",
 		"arrow-parens": "off",
 		"no-multi-spaces": "off",
-		"jsdoc/no-undefined-types": "off"
+		"jsdoc/no-undefined-types": "off",
+		"no-shadow": "warn"
 	}
 }

@@ -1,72 +1,72 @@
 {
-  "name": "change-propagation",
-  "version": "0.10.4",
-  "description": "Listens to events from Kafka and delivers them",
-  "main": "server.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/wikimedia/change-propagation.git"
-  },
-  "scripts": {
-    "start": "export UV_THREADPOOL_SIZE=128 && service-runner",
-    "cleanup": "sh test/utils/clean_kafka.sh",
-    "install-kafka": "sh node_modules/kafka-test-tools/install_kafka.sh",
-    "start-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh start",
-    "stop-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh stop",
-    "test": "export MOCK_SERVICES=true && npm run lint && mocha",
-    "integration": "export UV_THREADPOOL_SIZE=128 && npm run lint && npm run cleanup && mocha",
-    "lint": "eslint --cache --ext .js .",
-    "coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && nyc --reporter=lcov mocha",
-    "coveralls": "cat ./coverage/lcov.info | coveralls"
-  },
-  "keywords": [
-    "REST",
-    "API",
-    "Kafka",
-    "queuing",
-    "EventBus"
-  ],
-  "author": "Wikimedia Services Team <services@lists.wikimedia.org>",
-  "contributors": [
-    "Marko Obrovac <mobrovac@wikimedia.org>",
-    "Petr Pchelko <ppchelko@wikimedia.org>"
-  ],
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://phabricator.wikimedia.org/tag/services/"
-  },
-  "homepage": "https://github.com/wikimedia/change-propagation",
-  "dependencies": {
-    "bluebird": "^3.7.2",
-    "extend": "^3.0.2",
-    "fast-json-stable-stringify": "^2.1.0",
-    "htcp-purge": "^0.3.1",
-    "hyperswitch": "^0.13.0",
-    "mediawiki-title": "^0.7.2",
-    "murmurhash": "^1.0.0",
-    "node-rdkafka": "2.8.1",
-    "ratelimit.js": "^1.8.0",
-    "redis": "^3.0.2",
-    "service-runner": "^2.7.8",
-    "uuid": "^8.1.0"
-  },
-  "devDependencies": {
-    "@wikimedia/jsonschema-tools": "^0.7.5",
-    "ajv": "^6.12.2",
-    "coveralls": "^3.1.0",
-    "eslint-config-wikimedia": "^0.16.1",
-    "eslint-plugin-jsdoc": "^27.0.6",
-    "eslint-plugin-json": "^2.1.1",
-    "js-yaml": "^3.14.0",
-    "kafka-test-tools": "^0.1.13",
-    "mocha": "^8.0.1",
-    "mock-require": "^3.0.3",
-    "nock": "^12.0.3",
-    "nyc": "^15.1.0",
-    "preq": "^0.5.14",
-    "redis-mock": "^0.49.0"
-  },
-  "engines": {
-    "node": ">=10"
-  }
+	"name": "change-propagation",
+	"version": "0.10.4",
+	"description": "Listens to events from Kafka and delivers them",
+	"main": "server.js",
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/wikimedia/change-propagation.git"
+	},
+	"scripts": {
+		"start": "export UV_THREADPOOL_SIZE=128 && service-runner",
+		"cleanup": "sh test/utils/clean_kafka.sh",
+		"install-kafka": "sh node_modules/kafka-test-tools/install_kafka.sh",
+		"start-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh start",
+		"stop-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh stop",
+		"test": "export MOCK_SERVICES=true && npm run lint && mocha",
+		"integration": "export UV_THREADPOOL_SIZE=128 && npm run lint && npm run cleanup && mocha",
+		"lint": "eslint --cache --ext .js .",
+		"coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && nyc --reporter=lcov mocha",
+		"coveralls": "cat ./coverage/lcov.info | coveralls"
+	},
+	"keywords": [
+		"REST",
+		"API",
+		"Kafka",
+		"queuing",
+		"EventBus"
+	],
+	"author": "Wikimedia Services Team <services@lists.wikimedia.org>",
+	"contributors": [
+		"Marko Obrovac <mobrovac@wikimedia.org>",
+		"Petr Pchelko <ppchelko@wikimedia.org>"
+	],
+	"license": "Apache-2.0",
+	"bugs": {
+		"url": "https://phabricator.wikimedia.org/tag/services/"
+	},
+	"homepage": "https://github.com/wikimedia/change-propagation",
+	"dependencies": {
+		"bluebird": "^3.7.2",
+		"extend": "^3.0.2",
+		"fast-json-stable-stringify": "^2.1.0",
+		"htcp-purge": "^0.3.1",
+		"hyperswitch": "^0.13.0",
+		"mediawiki-title": "^0.7.2",
+		"murmurhash": "^1.0.0",
+		"node-rdkafka": "2.8.1",
+		"ratelimit.js": "^1.8.0",
+		"redis": "^3.0.2",
+		"service-runner": "^2.7.8",
+		"uuid": "^8.1.0"
+	},
+	"devDependencies": {
+		"@wikimedia/jsonschema-tools": "^0.7.5",
+		"ajv": "^6.12.2",
+		"coveralls": "^3.1.0",
+		"eslint-config-wikimedia": "0.17.0",
+		"eslint-plugin-jsdoc": "^27.0.6",
+		"eslint-plugin-json": "^2.1.1",
+		"js-yaml": "^3.14.0",
+		"kafka-test-tools": "^0.1.13",
+		"mocha": "^8.0.1",
+		"mock-require": "^3.0.3",
+		"nock": "^12.0.3",
+		"nyc": "^15.1.0",
+		"preq": "^0.5.14",
+		"redis-mock": "^0.49.0"
+	},
+	"engines": {
+		"node": ">=10"
+	}
 }
