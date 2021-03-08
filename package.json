@@ -54,7 +54,7 @@
 		"@wikimedia/jsonschema-tools": "^0.7.5",
 		"ajv": "^6.12.2",
 		"coveralls": "^3.1.0",
-		"eslint-config-wikimedia": "0.18.1",
+		"eslint-config-wikimedia": "0.18.2",
 		"js-yaml": "^3.14.0",
 		"kafka-test-tools": "^0.1.13",
 		"mocha": "^8.0.1",
