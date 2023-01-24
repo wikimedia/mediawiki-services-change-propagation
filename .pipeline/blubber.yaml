@@ -4,7 +4,7 @@ lives:
   in: /srv/service
 runs:
   environment: { APP_BASE_PATH: /srv/service }
-apt: { packages: [libssl1.1] }
+apt: { packages: [libssl1.1, wmf-certificates] }
 
 variants:
   build:
