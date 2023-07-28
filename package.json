@@ -44,7 +44,7 @@
 		"hyperswitch": "^0.13.0",
 		"mediawiki-title": "^0.7.2",
 		"murmurhash": "^1.0.0",
-		"node-rdkafka": "2.16.1",
+		"node-rdkafka": "2.8.1",
 		"ratelimit.js": "^1.8.0",
 		"redis": "^3.0.2",
 		"service-runner": "^2.7.8",
