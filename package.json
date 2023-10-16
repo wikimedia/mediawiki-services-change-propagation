@@ -1,6 +1,6 @@
 {
 	"name": "change-propagation",
-	"version": "0.10.4",
+	"version": "0.11.0",
 	"description": "Listens to events from Kafka and delivers them",
 	"main": "server.js",
 	"repository": {
@@ -13,7 +13,7 @@
 		"install-kafka": "sh node_modules/kafka-test-tools/install_kafka.sh",
 		"start-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh start",
 		"stop-kafka": "sh node_modules/kafka-test-tools/start_kafka.sh stop",
-		"test": "export MOCK_SERVICES=true && npm run lint && mocha",
+		"test": "export MOCK_SERVICES=true && npm run lint && mocha --recursive",
 		"integration": "export UV_THREADPOOL_SIZE=128 && npm run lint && npm run cleanup && mocha",
 		"lint": "eslint --cache --ext .js .",
 		"coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && nyc --reporter=lcov mocha",
@@ -29,7 +29,9 @@
 	"author": "Wikimedia Services Team <services@lists.wikimedia.org>",
 	"contributors": [
 		"Marko Obrovac <mobrovac@wikimedia.org>",
-		"Petr Pchelko <ppchelko@wikimedia.org>"
+		"Petr Pchelko <ppchelko@wikimedia.org>",
+		"Hugh Nowlan <hnowlan@wikimedia.org>",
+		"Luca Toscano <ltoscano@wikimedia.org>"
 	],
 	"license": "Apache-2.0",
 	"bugs": {
@@ -44,17 +46,17 @@
 		"hyperswitch": "^0.13.0",
 		"mediawiki-title": "^0.7.2",
 		"murmurhash": "^1.0.0",
-		"node-rdkafka": "2.8.1",
+		"node-rdkafka": "2.17.0",
 		"ratelimit.js": "^1.8.0",
 		"redis": "^3.0.2",
 		"service-runner": "^2.7.8",
-		"uuid": "^8.1.0"
+		"uuid": "^9.0.1"
 	},
 	"devDependencies": {
 		"@wikimedia/jsonschema-tools": "^0.7.5",
 		"ajv": "^6.12.2",
 		"coveralls": "^3.1.0",
-		"eslint-config-wikimedia": "0.20.0",
+		"eslint-config-wikimedia": "0.25.1",
 		"js-yaml": "^3.14.0",
 		"kafka-test-tools": "^0.1.13",
 		"mocha": "^8.0.1",
@@ -65,6 +67,6 @@
 		"redis-mock": "^0.56.3"
 	},
 	"engines": {
-		"node": ">=10"
+		"node": ">=18"
 	}
 }

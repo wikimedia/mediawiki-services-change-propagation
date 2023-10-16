@@ -1,6 +1,10 @@
 {
 	"root": true,
-	"extends": "eslint-config-wikimedia/server",
+	"extends": [
+		"wikimedia",
+		"wikimedia/node",
+		"wikimedia/language/es2019"
+	],
 	"rules": {
 		"camelcase": [
 			"error",

@@ -1,16 +1,16 @@
-# syntax=docker-registry.wikimedia.org/repos/releng/blubber:v0.12.1
+# syntax=docker-registry.wikimedia.org/repos/releng/blubber/buildkit:v0.21.0
 version: v4
-base: docker-registry.wikimedia.org/buster-nodejs10-slim
+base: docker-registry.wikimedia.org/nodejs18-slim
 lives:
   in: /srv/service
 runs:
   environment: { APP_BASE_PATH: /srv/service }
-apt: { packages: [libssl1.1, wmf-certificates] }
+apt: { packages: [wmf-certificates] }
 
 variants:
   build:
-    apt: { packages: [build-essential, python-dev, git, libssl-dev] }
-    base: docker-registry.wikimedia.org/buster-nodejs10-devel
+    apt: { packages: [build-essential, python3-dev, libssl-dev] }
+    base: docker-registry.wikimedia.org/nodejs18-devel
     copies: [local]
     node: { requirements: [package.json]}
     runs: { environment: { LINK: g++ }}

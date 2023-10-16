@@ -74,7 +74,7 @@ describe('update rules', function () {
         udpServer.on('message', function (msg) {
             try {
                 msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
-                if (msg.indexOf(testString) >= 0) {
+                if (msg.includes(testString)) {
                     assert.deepEqual(msg, uriAfter);
                     udpServer.close();
                     closed = true;
