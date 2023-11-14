@@ -184,6 +184,46 @@ describe('Rule', function () {
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
+        it('matches match but is canary event and should_discard_canary_events is true', function () {
+            const canaryMessage = {
+                meta: {
+                    uri: 'a/fake/uri/for/you',
+                    request_id: '12345678-9101',
+                    domain: 'canary'
+                },
+                number: 1,
+                string: 'oolala'
+            };
+
+            const r = new Rule('rule', {
+                topic: 'nono',
+                exec: { uri: 'a/b/c' },
+                match: { number: 1 },
+                discard_canary_events: true
+            });
+            assert.equal(r.test(canaryMessage), -1, 'Expected the rule not to match the given canary event.');
+        });
+
+        it('matches match and is canary event and should_discard_canary_events is false', function () {
+            const canaryMessage = {
+                meta: {
+                    uri: 'a/fake/uri/for/you',
+                    request_id: '12345678-9101',
+                    domain: 'canary'
+                },
+                number: 1,
+                string: 'oolala'
+            };
+
+            const r = new Rule('rule', {
+                topic: 'nono',
+                exec: { uri: 'a/b/c' },
+                match: { number: 1 },
+                discard_canary_events: false
+            });
+            assert.equal(r.test(canaryMessage), 0, 'Expected the to match the given canary event.');
+        });
+
         it('expansion', function () {
             const r = new Rule('rule', {
                 topic: 'nono',
