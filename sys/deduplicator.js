@@ -30,10 +30,10 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
         // First, look at the individual event duplication based on ID
         // This happens when we restart ChangeProp and reread some of the
         // exact same events which were executed but was not committed.
-        const messageKey = `${prefix}_${message.meta.domain}_${message.meta.id}`;
-        return this._redis.setnxAsync(messageKey, '1')
+        const messageKeyWithId = `${prefix}_${message.meta.domain}_${message.meta.id}`;
+        return this._redis.setnxAsync(messageKeyWithId, '1')
         // Expire the key or renew the expiration timestamp if the key existed
-        .tap(() => this._redis.expireAsync(messageKey, Math.ceil(this._expire_timeout / 24)))
+        .tap(() => this._redis.expireAsync(messageKeyWithId, Math.ceil(this._expire_timeout / 24)))
         // If that key already existed - that means it's a duplicate
         .then((setResult) => {
             if (setResult) {
@@ -52,8 +52,8 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
                 // don't try to deduplicate by SHA-1
                 return individualDuplicate;
             }
-            const messageKey = `${prefix}_${message.meta.domain}_${message.sha1}`;
-            return this._redis.getAsync(messageKey)
+            const messageKeyWithSha = `${prefix}_${message.meta.domain}_${message.sha1}`;
+            return this._redis.getAsync(messageKeyWithSha)
             .then((previousExecutionTime) => {
                 // If the same event (by sha1) was created before the previous execution
                 // time, the changes that caused it were already in the database, so it
@@ -88,8 +88,8 @@ class Deduplicator extends mixins.mix(Object).with(mixins.Redis) {
                     }));
                     return DUPLICATE;
                 }
-                return this._redis.setAsync(messageKey, new Date().toISOString())
-                .then(() => this._redis.expireAsync(messageKey,
+                return this._redis.setAsync(messageKeyWithSha, new Date().toISOString())
+                .then(() => this._redis.expireAsync(messageKeyWithSha,
                     Math.ceil(this._expire_timeout / 24)))
                 .thenReturn(NOT_DUPLICATE);
             });

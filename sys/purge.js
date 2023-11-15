@@ -35,6 +35,7 @@ class PurgeService {
         }
 
         return this.purger.purge(req.body.map((event) => {
+            /* eslint-disable-next-line security/detect-unsafe-regex */
             if (!event.meta || !event.meta.uri || !/^(https?:)?\/\//.test(event.meta.uri)) {
                 hyper.logger.log('error/events/purge', () => ({
                     message: 'Invalid event URI',

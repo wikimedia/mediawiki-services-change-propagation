@@ -107,8 +107,8 @@ describe('Rule', function () {
                 exec: { uri: 'a/b/c' },
                 match: { array: ['1', 2, '/(\\d)/'] }
             });
-            const msg = { array: [2, '1', '3', '4', 5] };
-            assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
+            const msgToMatch = { array: [2, '1', '3', '4', 5] };
+            assert.equal(r.test(msgToMatch), 0, 'Expected the rule to match the given message!');
         });
 
         it('malformed match', function () {

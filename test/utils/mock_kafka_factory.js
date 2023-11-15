@@ -4,14 +4,14 @@ const P = require('bluebird');
 const EventEmitter = require('events').EventEmitter;
 const fs = require('fs');
 
-const topics = fs.readFileSync(`${__dirname}/test_topics`, 'utf8')
+const fixtureTopics = fs.readFileSync(`${__dirname}/test_topics`, 'utf8')
     .split('\n')
     .map((line) => line.split(' ')[0].replace(/^test_dc\./, ''))
     .filter((line) => line.length);
 
 class MockMetadataWatch extends EventEmitter {
     getTopics() {
-        return P.resolve(topics);
+        return P.resolve(fixtureTopics);
     }
     disconnect() {}
 }
