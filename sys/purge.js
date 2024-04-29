@@ -43,7 +43,7 @@ class PurgeService {
                 }));
                 return undefined;
             }
-            return `http:${event.meta.uri.replace(/^https?:/, '')}`;
+            return `http:${ event.meta.uri.replace(/^https?:/, '') }`;
         }).filter(event => !!event))
         .thenReturn({ status: 201 })
         .catch((e) => {

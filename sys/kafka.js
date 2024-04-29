@@ -88,8 +88,8 @@ class Kafka {
                 });
             }
             hyper.metrics.increment(
-                `produce_${hyper.metrics.normalizeName(message.meta.stream.replace(/\./g, '_'))}.${partition}`);
-            return this.producer.produce(`${this.kafkaFactory.produceDC}.${message.meta.stream}`,
+                `produce_${ hyper.metrics.normalizeName(message.meta.stream.replace(/\./g, '_')) }.${ partition }`);
+            return this.producer.produce(`${ this.kafkaFactory.produceDC }.${ message.meta.stream }`,
                 partition,
                 Buffer.from(JSON.stringify(message)));
         }))

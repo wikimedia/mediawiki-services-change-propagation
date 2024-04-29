@@ -143,7 +143,7 @@ function _sendResourceChanges(hyper, items, originalEvent, tags, streamName) {
         body: items.map((item) => {
             // TODO: need to check whether a wiki is http or https!
             const resourceURI =
-                `https://${item.domain}/wiki/${encodeURIComponent(item.title)}`;
+                `https://${ item.domain }/wiki/${ encodeURIComponent(item.title) }`;
             return {
                 $schema: '/resource_change/1.0.0',
                 meta: {
@@ -275,7 +275,7 @@ class DependencyProcessor {
             }))
             .then((res) => {
                 if (!res || !res.body || !res.body.query || !res.body.query.general) {
-                    throw new Error(`SiteInfo is unavailable for ${message.meta.domain}`);
+                    throw new Error(`SiteInfo is unavailable for ${ message.meta.domain }`);
                 }
                 return {
                     general: {

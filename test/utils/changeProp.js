@@ -8,7 +8,7 @@ const CHANGE_PROP_STOP_DELAY = 1000;
 const CHANGE_PROP_START_DELAY = 30000;
 
 class ChangePropServer extends TestServer {
-    constructor(configPath = `${__dirname}/../../config.test.yaml`) {
+    constructor(configPath = `${ __dirname }/../../config.test.yaml`) {
         super(configPath);
     }
 

@@ -33,6 +33,7 @@
 		"arrow-parens": "off",
 		"no-multi-spaces": "off",
 		"jsdoc/no-undefined-types": "off",
-		"no-shadow": "warn"
+		"no-shadow": "warn",
+		"es-x/no-array-prototype-with": "warn"
 	}
 }

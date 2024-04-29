@@ -18,14 +18,16 @@ describe('JobQueue rules', function () {
         this.timeout(50000);
         return changeProp.start()
         .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
-        .then((result) => { producer = result; });
+        .then((result) => {
+            producer = result;
+        });
     });
 
     [
         'updateBetaFeaturesUserCounts',
         'cdnPurge'
     ].forEach((jobType) => {
-        it(`Should propagate ${jobType} job`, function () {
+        it(`Should propagate ${ jobType } job`, function () {
             this.timeout(10000);
             const sampleEvent = common.jobs[jobType];
             const service = nock('http://jobrunner.wikipedia.org', {
@@ -36,7 +38,7 @@ describe('JobQueue rules', function () {
             })
             .post('/wiki/Special%3ARunSingleJob', sampleEvent)
             .reply(200, {});
-            return producer.produce(`test_dc.mediawiki.job.${jobType}`, 0, sampleEvent.toBuffer())
+            return producer.produce(`test_dc.mediawiki.job.${ jobType }`, 0, sampleEvent.toBuffer())
             .then(() => common.checkAPIDone(service))
             .finally(() => nock.cleanAll());
         });
@@ -151,7 +153,7 @@ describe('JobQueue rules', function () {
     it('Should support delayed jobs with re-enqueue', () => {
         this.timeout(20000);
         const sampleEvent = common.jobs.cdnPurge;
-        sampleEvent.delay_until = `${new Date(Date.parse(sampleEvent.delay_until) + 10000).toISOString()}`;
+        sampleEvent.delay_until = `${ new Date(Date.parse(sampleEvent.delay_until) + 10000).toISOString() }`;
         const service = nock('http://jobrunner.wikipedia.org', {
             reqheaders: {
                 host: sampleEvent.meta.domain,

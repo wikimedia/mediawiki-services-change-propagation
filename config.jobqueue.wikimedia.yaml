@@ -35,61 +35,61 @@ spec: &spec
               queue.buffering.max.messages: "10"
               compression.codec: snappy
             # Redis-mock does not support evalsha that rate limiting depend on.
-            disable_ratelimit: '{env(MOCK_SERVICES)}'
+            disable_ratelimit: "{env(MOCK_SERVICES)}"
             concurrency: 250
             reenqueue_delay: 5
             templates:
               normal_job_rule:
                 topics:
-                  - 'mediawiki.job.updateBetaFeaturesUserCounts'
-                  - 'mediawiki.job.cdnPurge'
+                  - mediawiki.job.updateBetaFeaturesUserCounts
+                  - mediawiki.job.cdnPurge
                 exec:
                   method: post
-                  uri: 'http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob'
+                  uri: "http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob"
                   headers:
                     content-type: application/json
-                    host: '{{message.meta.domain}}'
-                  body: '{{globals.message}}'
+                    host: "{{message.meta.domain}}"
+                  body: "{{globals.message}}"
               htmlCacheUpdate_partitioner:
-                topic: 'mediawiki.job.htmlCacheUpdate'
+                topic: mediawiki.job.htmlCacheUpdate
                 exec:
-                  method: 'post'
-                  uri: '/sys/partition/'
+                  method: post
+                  uri: /sys/partition/
                   headers:
                     content-type: application/json
-                  body: '{{globals.message}}'
+                  body: "{{globals.message}}"
               htmlCacheUpdate:
-                topic: 'cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate'
+                topic: cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate
                 exec:
                   method: post
-                  uri: 'http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob'
+                  uri: "http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob"
                   headers:
                     content-type: application/json
-                    host: '{{message.meta.domain}}'
-                  body: '{{globals.message}}'
+                    host: "{{message.meta.domain}}"
+                  body: "{{globals.message}}"
               refreshLinks_partitioner:
-                topic: 'mediawiki.job.refreshLinks'
-                exec:
-                  method: 'post'
-                  uri: '/sys/partition/'
-                  headers:
-                    content-type: application/json
-                  body: '{{globals.message}}'
-              refreshLinks:
-                topic: 'cpjobqueue.partitioned.mediawiki.job.refreshLinks'
+                topic: mediawiki.job.refreshLinks
                 exec:
                   method: post
-                  uri: 'http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob'
+                  uri: /sys/partition/
                   headers:
                     content-type: application/json
-                    host: '{{message.meta.domain}}'
-                  body: '{{globals.message}}'
+                  body: "{{globals.message}}"
+              refreshLinks:
+                topic: cpjobqueue.partitioned.mediawiki.job.refreshLinks
+                exec:
+                  method: post
+                  uri: "http://jobrunner.wikipedia.org/wiki/Special:RunSingleJob"
+                  headers:
+                    content-type: application/json
+                    host: "{{message.meta.domain}}"
+                  body: "{{globals.message}}"
     /sys/partition:
       x-modules:
         - path: sys/partitioner.js
           options:
             templates:
-              partition_stream: 'cpjobqueue.partitioned.{{message.meta.stream}}'
+              partition_stream: "cpjobqueue.partitioned.{{message.meta.stream}}"
             partition_key: database
             partition_default: 2
             partition_map:

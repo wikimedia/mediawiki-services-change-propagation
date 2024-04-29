@@ -117,7 +117,7 @@ const ajv = new Ajv({
     loadSchema: (uri) => preq.get({ uri })
     .then((content) => {
         if (content.status !== 200) {
-            throw new Error(`Failed to load meta schema at ${uri}`);
+            throw new Error(`Failed to load meta schema at ${ uri }`);
         }
         const metaSchema = content.body;
         // Need to reassign the ID cause we're using https in the meta-schema URIs
@@ -127,7 +127,7 @@ const ajv = new Ajv({
 });
 
 common.fetchEventValidator = (schemaUri, version = 1) => {
-    const schemaPath = `${schemaUri}/${version}.yaml`;
+    const schemaPath = `${ schemaUri }/${ version }.yaml`;
     if (validatorCache.has(schemaPath)) {
         return P.resolve(validatorCache.get(schemaPath));
     }
@@ -149,7 +149,7 @@ common.fetchEventValidator = (schemaUri, version = 1) => {
         });
     } catch (e) {
         return preq.get({
-            uri: `https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/${schemaPath}`
+            uri: `https://raw.githubusercontent.com/wikimedia/mediawiki-event-schemas/master/jsonschema/${ schemaPath }`
         })
         .then((res) => ajv.compileAsync(yaml.safeLoad(res.body)))
         .then((validator) => {
@@ -409,7 +409,7 @@ common.jobs = {
             __proto__: eventMethods,
             $schema: 'mediawiki/job/1.0.0',
             database: 'commonswiki',
-            delay_until: `${releaseTimestamp}`,
+            delay_until: `${ releaseTimestamp }`,
             mediawiki_signature: 'e6ff5af8f89ac6441c6ad7b34bdcf44fb1746c1ef6e07d8b9653c75d0005193e',
             meta: {
                 domain: 'commons.wikimedia.org',

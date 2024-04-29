@@ -62,7 +62,7 @@ class Partitioner {
             message: event
         });
         return hyper.post({
-            uri: `/sys/queue/events/${partition}`,
+            uri: `/sys/queue/events/${ partition }`,
             body: [ event ]
         });
     }

@@ -4,7 +4,7 @@ const P = require('bluebird');
 const EventEmitter = require('events').EventEmitter;
 const fs = require('fs');
 
-const fixtureTopics = fs.readFileSync(`${__dirname}/test_topics`, 'utf8')
+const fixtureTopics = fs.readFileSync(`${ __dirname }/test_topics`, 'utf8')
     .split('\n')
     .map((line) => line.split(' ')[0].replace(/^test_dc\./, ''))
     .filter((line) => line.length);
@@ -13,6 +13,7 @@ class MockMetadataWatch extends EventEmitter {
     getTopics() {
         return P.resolve(fixtureTopics);
     }
+
     disconnect() {}
 }
 
@@ -20,6 +21,7 @@ class MockProducer {
     constructor(messages) {
         this._messages = messages;
     }
+
     produce(topic, partition, message) {
         if (!this._messages.has(topic)) {
             this._messages.set(topic, []);
@@ -31,6 +33,7 @@ class MockProducer {
         });
         return P.resolve();
     }
+
     disconnect() {}
 }
 
@@ -41,13 +44,16 @@ class MockConsumer extends EventEmitter {
         this._messages = messages;
         this._currentTopicOffsets = new Map();
     }
+
     _getCurrentOffset(topic) {
         if (this._currentTopicOffsets.has(topic)) {
             return this._currentTopicOffsets.get(topic);
         }
         return 0;
     }
+
     disconnect() {}
+
     disconnectAsync() {}
 
     consumeAsync() {
@@ -68,6 +74,7 @@ class MockConsumer extends EventEmitter {
         }
         return P.resolve([]);
     }
+
     commitMessageAsync() {
         return P.resolve();
     }

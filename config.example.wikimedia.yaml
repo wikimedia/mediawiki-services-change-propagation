@@ -14,8 +14,8 @@ spec: &spec
         - path: sys/ores_updates.js
           options:
             ores_precache_uris:
-              - 'https://ores.wikimedia.org/v3/precache'
-            event_service_uri: 'https://eventgate.stubfortests.org/v1/events'
+              - "https://ores.wikimedia.org/v3/precache"
+            event_service_uri: "https://eventgate.stubfortests.org/v1/events"
     /sys/limit:
       x-modules:
         - path: sys/rate_limiter.js
@@ -52,11 +52,11 @@ spec: &spec
           options:
             templates:
               mw_api:
-                  uri: 'https://{{message.meta.domain}}/w/api.php'
-                  headers:
-                    host: '{{message.meta.domain}}'
-                  body:
-                    formatversion: 2
+                uri: "https://{{message.meta.domain}}/w/api.php"
+                headers:
+                  host: "{{message.meta.domain}}"
+                body:
+                  formatversion: 2
     /sys/queue:
       x-modules:
         - path: sys/kafka.js
@@ -76,22 +76,22 @@ spec: &spec
               compression.codec: snappy
             concurrency: 250
             # Redis-mock does not support evalsha that rate limiting depend on.
-            disable_ratelimit: '{env(MOCK_SERVICES)}'
+            disable_ratelimit: "{env(MOCK_SERVICES)}"
             blacklist:
               en.wikipedia.org:
-                - 'User:Nolelover'
+                - "User:Nolelover"
                 - '/User:Cyberbot_I\//'
             templates:
 
               summary_definition_rerender: &summary_definition_rerender_spec
-                topic: 'resource_change'
+                topic: resource_change
                 retry_limit: 2
                 retry_delay: 500
                 retry_on:
                   status:
-                    - '5xx'
+                    - 5xx
                 limiters:
-                  blacklist: 'summary:{message.meta.uri}'
+                  blacklist: "summary:{message.meta.uri}"
                 cases: # Non wiktionary domains - rerender summary
                   - match:
                       meta:
@@ -100,13 +100,13 @@ spec: &spec
                         - restbase
                     match_not:
                       - meta:
-                          domain: '/wiktionary.org$/'
+                          domain: /wiktionary.org$/
                       - meta:
                           domain: /\.wikidata\.org$/
                     exec:
                       method: get
                       # Don't encode title since it should be already encoded
-                      uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
+                      uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}"
                       query:
                         redirect: false
                       headers:
@@ -122,7 +122,7 @@ spec: &spec
                     exec:
                       method: get
                       # Don't encode title since it should be already encoded
-                      uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/definition/{{match.meta.uri.title}}'
+                      uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/definition/{{match.meta.uri.title}}"
                       query:
                         redirect: false
                       headers:
@@ -130,17 +130,17 @@ spec: &spec
 
               summary_definition_rerender_transcludes: &summary_definition_rerender_transcludes_spec
                 <<: *summary_definition_rerender_spec
-                topic: 'change-prop.transcludes.resource-change'
+                topic: change-prop.transcludes.resource-change
 
               mobile_rerender: &mobile_rerender_spec
-                topic: 'resource_change'
+                topic: resource_change
                 retry_limit: 2
                 retry_delay: 500
                 retry_on:
                   status:
-                    - '5xx'
+                    - 5xx
                 limiters:
-                  blacklist: 'mobile:{message.meta.uri}'
+                  blacklist: "mobile:{message.meta.uri}"
                 match:
                   meta:
                     uri: '/^(?<proto>https?):\/\/[^\/]+\/api\/rest_v1\/page\/html\/(?<title>[^/]+)$/'
@@ -149,24 +149,24 @@ spec: &spec
                     - restbase
                 exec:
                   - method: get
-                    uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{{match.meta.uri.title}}'
+                    uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{{match.meta.uri.title}}"
                     query:
                       redirect: false
                     headers:
                       cache-control: no-cache
                     # Until we start storing and actively rerendering PCS endpoints we still need to purge it from Varnish
                   - method: post
-                    uri: '/sys/purge/'
+                    uri: /sys/purge/
                     body:
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/media-list/{{match.meta.uri.title}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/media-list/{{match.meta.uri.title}}"
 
               mobile_rerender_transcludes: &mobile_rerender_transcludes_spec
                 <<: *mobile_rerender_spec
-                topic: 'change-prop.transcludes.resource-change'
+                topic: change-prop.transcludes.resource-change
 
               purge_varnish: &purge_varnish_spec
-                topic: 'resource_change'
+                topic: resource_change
                 match:
                   meta:
                     uri: '/^https?:\/\/[^\/]+\/api\/rest_v1\/(?<title>.+)$/'
@@ -174,20 +174,20 @@ spec: &spec
                     - restbase
                 exec:
                   method: post
-                  uri: '/sys/purge/'
+                  uri: /sys/purge/
                   body:
                     - meta:
-                        uri: '//{{message.meta.domain}}/api/rest_v1/{{match.meta.uri.title}}'
+                        uri: "//{{message.meta.domain}}/api/rest_v1/{{match.meta.uri.title}}"
 
               purge_varnish_transcludes: &purge_varnish_transcludes_spec
                 <<: *purge_varnish_spec
-                topic: 'change-prop.transcludes.resource-change'
+                topic: change-prop.transcludes.resource-change
 
               # RESTBase update jobs
               mw_purge:
                 topic: resource_change
                 limiters:
-                  blacklist: 'html:{message.meta.uri}'
+                  blacklist: "html:{message.meta.uri}"
                 cases:
                   - match:
                       meta:
@@ -199,22 +199,22 @@ spec: &spec
                       - method: get
                         # This even comes directly from MediaWiki, so title is encoded in MW-specific way.
                         # Re-encode the title in standard `encodeURIComponent` encoding.
-                        uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}'
+                        uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
-                          if-unmodified-since: '{{date(message.meta.dt)}}'
+                          if-unmodified-since: "{{date(message.meta.dt)}}"
                         query:
                           redirect: false
                         # The HTML might not change but sometimes editors use a purge to drop incorrectly rendered summary/MCS
                         # content, so let's purge them as well just in case. The rate is low.
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{decode(match.meta.uri.title)}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
                         query:
                           redirect: false
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{decode(match.meta.uri.title)}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -229,16 +229,16 @@ spec: &spec
                       - method: get
                         # This even comes directly from MediaWiki, so title is encoded in MW-specific way.
                         # Re-encode the title in standard `encodeURIComponent` encoding.
-                        uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}'
+                        uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
-                          if-unmodified-since: '{{date(message.meta.dt)}}'
+                          if-unmodified-since: "{{date(message.meta.dt)}}"
                         query:
                           redirect: false
                         # The HTML might not change but sometimes editors use a purge to drop incorrectly rendered summary/MCS
                         # content, so let's purge them as well just in case. The rate is low.
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/definition/{decode(match.meta.uri.title)}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/definition/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -263,16 +263,16 @@ spec: &spec
                       - method: get
                         # This even comes directly from MediaWiki, so title is encoded in MW-specific way.
                         # Re-encode the title in standard `encodeURIComponent` encoding.
-                        uri: '{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}'
+                        uri: "{{match.meta.uri.proto}}://{{message.meta.domain}}/api/rest_v1/page/html/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
-                          if-unmodified-since: '{{date(message.meta.dt)}}'
+                          if-unmodified-since: "{{date(message.meta.dt)}}"
                         query:
                           redirect: false
                         # The HTML might not change but sometimes editors use a purge to drop incorrectly rendered summary/MCS
                         # content, so let's purge them as well just in case. The rate is low.
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{decode(match.meta.uri.title)}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{decode(match.meta.uri.title)}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -285,7 +285,7 @@ spec: &spec
                     - 403 # Ignoring 403 since some of the pages with high number of null_edit events are blacklisted
                     - 412
                 limiters:
-                  blacklist: 'html:{message.meta.uri}'
+                  blacklist: "html:{message.meta.uri}"
                 cases:
                   - match:
                       meta:
@@ -312,18 +312,18 @@ spec: &spec
               page_edit:
                 topic: mediawiki.revision-create
                 limiters:
-                  blacklist: 'html:{message.meta.uri}'
+                  blacklist: "html:{message.meta.uri}"
                 retry_on:
                   status:
-                    - '5xx'
+                    - 5xx
                     - 404 # Sometimes occasional 404s happen because of the mysql replication lag, so retry
                 match:
                   rev_content_changed: true
                 match_not:
-                # Test-only. We use undefined rev_parent_id to test backlinks so we
-                # don't want transclusions to interfere with backlinks test
+                  # Test-only. We use undefined rev_parent_id to test backlinks so we
+                  # don't want transclusions to interfere with backlinks test
                   - rev_parent_id: undefined
-                # end of test-only config
+                  # end of test-only config
                   - meta:
                       domain: /\.wikidata\.org$/
                     page_namespace: 0
@@ -332,16 +332,16 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}"
                     headers:
                       cache-control: no-cache
-                      x-restbase-parentrevision: '{{message.rev_parent_id}}'
-                      if-unmodified-since: '{{date(message.meta.dt)}}'
+                      x-restbase-parentrevision: "{{message.rev_parent_id}}"
+                      if-unmodified-since: "{{date(message.meta.dt)}}"
                     query:
                       redirect: false
                   - method: post
-                    uri: '/sys/links/transcludes/{message.page_title}'
-                    body: '{{globals.message}}'
+                    uri: "/sys/links/transcludes/{message.page_title}"
+                    body: "{{globals.message}}"
 
               revision_visibility_change:
                 topic: mediawiki.revision-visibility-change
@@ -358,7 +358,7 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}/{{message.rev_id}}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}/{{message.rev_id}}"
                     headers:
                       cache-control: no-cache
                     query:
@@ -368,16 +368,16 @@ spec: &spec
                   # we need to add many workarounds/shortcurst in RESTBase. So having this list here is an OK compromise.
                   # Only purge the URIs with a rev_id since the latest revision can not be restricted.
                   - method: post
-                    uri: '/sys/purge/'
+                    uri: /sys/purge/
                     body:
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}/{{message.rev_id}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}/{{message.rev_id}}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-lead/{message.page_title}/{{message.rev_id}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-lead/{message.page_title}/{{message.rev_id}}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-remaining/{message.page_title}/{{message.rev_id}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-remaining/{message.page_title}/{{message.rev_id}}"
 
               page_delete:
                 topic: mediawiki.page-delete
@@ -394,37 +394,37 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}"
                     headers:
                       cache-control: no-cache
                     query:
                       redirect: false
                   # The links to the deleted page should become red again
                   - method: post
-                    uri: '/sys/links/backlinks/{message.page_title}'
-                    body: '{{globals.message}}'
+                    uri: "/sys/links/backlinks/{message.page_title}"
+                    body: "{{globals.message}}"
                   # For page deletion RESTBase doesn't emit resource_change events, and to go through
                   # the normal purge chain (html update -> html resource_change -> summary update -> summary resource_change)
                   # we need to add many workarounds/shortcuts in RESTBase. So having this list here is an OK compromise.
                   - method: post
-                    uri: '/sys/purge/'
+                    uri: /sys/purge/
                     body:
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/definition/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/definition/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-lead/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-lead/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-remaining/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/mobile-sections-remaining/{message.page_title}"
                       - meta:
-                          uri: '//{{message.meta.domain}}/api/rest_v1/page/media-list/{message.page_title}'
+                          uri: "//{{message.meta.domain}}/api/rest_v1/page/media-list/{message.page_title}"
 
               page_restore:
                 topic: mediawiki.page-undelete
@@ -437,15 +437,15 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/title/{message.page_title}"
                     headers:
                       cache-control: no-cache
                     query:
                       redirect: false
                   # The links to the deleted page should become red again
                   - method: post
-                    uri: '/sys/links/backlinks/{message.page_title}'
-                    body: '{{globals.message}}'
+                    uri: "/sys/links/backlinks/{message.page_title}"
+                    body: "{{globals.message}}"
 
               page_move:
                 topic: mediawiki.page-move
@@ -458,14 +458,14 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/html/{message.page_title}/{{message.rev_id}}"
                     headers:
                       cache-control: no-cache
-                      if-unmodified-since: '{{date(message.meta.dt)}}'
+                      if-unmodified-since: "{{date(message.meta.dt)}}"
                     query:
                       redirect: false
                   - method: get
-                    uri: 'https://{{message.meta.domain}}/api/rest_v1/page/title/{message.prior_state.page_title}'
+                    uri: "https://{{message.meta.domain}}/api/rest_v1/page/title/{message.prior_state.page_title}"
                     headers:
                       cache-control: no-cache
                     query:
@@ -474,34 +474,34 @@ spec: &spec
               on_transclusion_update:
                 topic: change-prop.transcludes.resource-change
                 limiters:
-                  blacklist: 'html:{message.meta.uri}'
+                  blacklist: "html:{message.meta.uri}"
                 cases:
                   - match:
                       $schema: '/^\/resource_change\/.*/'
                       meta:
                         uri: '/https?:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                      tags: [ 'transcludes' ]
+                      tags: [ transcludes ]
                     exec:
                       method: get
-                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
+                      uri: "https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}"
                       headers:
                         cache-control: no-cache
-                        if-unmodified-since: '{{date(message.root_event.dt)}}'
-                        x-restbase-mode: '{{message.tags[1]}}'
+                        if-unmodified-since: "{{date(message.root_event.dt)}}"
+                        x-restbase-mode: "{{message.tags[1]}}"
                       query:
                         redirect: false
                   - match:
                       $schema: '/^\/change-prop\/continue\/.*/'
                     exec:
                       method: post
-                      uri: '/sys/links/transcludes/{message.original_event.page_title}'
-                      body: '{{globals.message}}'
+                      uri: "/sys/links/transcludes/{message.original_event.page_title}"
+                      body: "{{globals.message}}"
 
               page_create:
                 topic: mediawiki.page-create
                 retry_on:
                   status:
-                    - '5xx'
+                    - 5xx
                     - 404 # Sometimes occasional 404s happen because of the mysql replication lag, so retry
                 match_not:
                   - meta:
@@ -512,34 +512,34 @@ spec: &spec
                     page_namespace: 120
                 exec:
                   - method: post
-                    uri: '/sys/links/backlinks/{message.page_title}'
-                    body: '{{globals.message}}'
+                    uri: "/sys/links/backlinks/{message.page_title}"
+                    body: "{{globals.message}}"
 
               on_backlinks_update:
                 topic: change-prop.backlinks.resource-change
                 limiters:
-                  blacklist: 'html:{message.meta.uri}'
+                  blacklist: "html:{message.meta.uri}"
                 cases:
                   - match:
                       $schema: '/^\/resource_change\/.*/'
                       meta:
                         uri: '/https?:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                      tags: [ 'backlinks' ]
+                      tags: [ backlinks ]
                     exec:
                       method: get
-                      uri: 'https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}'
+                      uri: "https://{{message.meta.domain}}/api/rest_v1/page/html/{{match.meta.uri.title}}"
                       headers:
                         cache-control: no-cache
-                        if-unmodified-since: '{{date(message.root_event.dt)}}'
-                        x-restbase-mode: '{{message.tags[1]}}'
+                        if-unmodified-since: "{{date(message.root_event.dt)}}"
+                        x-restbase-mode: "{{message.tags[1]}}"
                       query:
                         redirect: false
                   - match:
                       $schema: '/^\/change-prop\/continue\/.*/'
                     exec:
                       method: post
-                      uri: '/sys/links/backlinks/{message.original_event.page_title}'
-                      body: '{{globals.message}}'
+                      uri: "/sys/links/backlinks/{message.original_event.page_title}"
+                      body: "{{globals.message}}"
 
               # ORES caching updates
               ores_cache:
@@ -550,10 +550,10 @@ spec: &spec
                     - 503
                 exec:
                   method: post
-                  uri: '/sys/ores/'
+                  uri: /sys/ores/
                   query:
                     postevent: true
-                  body: '{{globals.message}}'
+                  body: "{{globals.message}}"
 
               wikidata_description_on_edit:
                 topic: mediawiki.revision-create
@@ -563,12 +563,12 @@ spec: &spec
                   page_namespace: 0
                   # It's impossible to modify a comment in wikidata while editing the entity.
                   # TODO: This is a temp solution until we get a more general fragment support T148079
-                  comment: '/wbeditentity|wbsetdescription|undo|restore/'
+                  comment: "/wbeditentity|wbsetdescription|undo|restore/"
                   rev_content_changed: true
                 exec:
                   method: post
-                  uri: '/sys/links/wikidata_descriptions'
-                  body: '{{globals.message}}'
+                  uri: /sys/links/wikidata_descriptions
+                  body: "{{globals.message}}"
 
               wikidata_description_on_undelete:
                 topic: mediawiki.page-undelete
@@ -578,8 +578,8 @@ spec: &spec
                   page_namespace: 0
                 exec:
                   method: post
-                  uri: '/sys/links/wikidata_descriptions'
-                  body: '{{globals.message}}'
+                  uri: /sys/links/wikidata_descriptions
+                  body: "{{globals.message}}"
 
               on_wikidata_description_change:
                 topic: change-prop.wikidata.resource-change
@@ -588,16 +588,16 @@ spec: &spec
                       meta:
                         uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
                         domain: '/.*\.wikipedia.org$/'
-                      tags: [ 'wikidata' ]
+                      tags: [ wikidata ]
                     exec:
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}"
                         headers:
                           cache-control: no-cache
                         query:
                           redirect: false
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{{match.meta.uri.title}}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{{match.meta.uri.title}}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -605,11 +605,11 @@ spec: &spec
                   - match:
                       meta:
                         uri: '/https:\/\/[^\/]+\/wiki\/(?<title>.+)/'
-                      tags: [ 'wikidata' ]
+                      tags: [ wikidata ]
                     match_not: *others_match_not
                     exec:
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{{match.meta.uri.title}}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -623,27 +623,27 @@ spec: &spec
                       meta:
                         domain: '/.*\.wikipedia.org$/'
                       added_properties:
-                        page_image: '/.+/'
+                        page_image: "/.+/"
                     exec: &page_images_wikipedia_rerender
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}"
                         headers:
                           cache-control: no-cache
                         query:
                           redirect: false
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/mobile-sections/{message.page_title}"
                         headers:
                           cache-control: no-cache
                         query:
                           redirect: false
                   - match:
                       added_properties:
-                        page_image: '/.+/'
+                        page_image: "/.+/"
                     match_not: *others_match_not
                     exec: &page_images_others_rerender
                       - method: get
-                        uri: 'https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}'
+                        uri: "https://{{message.meta.domain}}/api/rest_v1/page/summary/{message.page_title}"
                         headers:
                           cache-control: no-cache
                         query:
@@ -652,26 +652,26 @@ spec: &spec
                       meta:
                         domain: '/.*\.wikipedia.org$/'
                       removed_properties:
-                        page_image: '/.+/'
+                        page_image: "/.+/"
                     exec: *page_images_wikipedia_rerender
                   - match:
                       removed_properties:
-                        page_image: '/.+/'
+                        page_image: "/.+/"
                     match_not: *others_match_not
                     exec: *page_images_others_rerender
 
               # Map tile cache invalidation
               purge_map_tile:
-                topic: 'resource_change'
+                topic: resource_change
                 match:
                   tags:
                     - tilerator
                 exec:
                   method: post
-                  uri: '/sys/purge/'
+                  uri: /sys/purge/
                   body:
                     - meta:
-                        uri: '{{message.meta.uri}}'
+                        uri: "{{message.meta.uri}}"
 
 num_workers: 0
 logging:

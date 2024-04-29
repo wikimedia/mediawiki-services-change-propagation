@@ -22,12 +22,12 @@ class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
 
             limiterOpts.forEach((opt) => {
                 if (!opt.interval || !opt.limit) {
-                    throw new Error(`Limiter ${type} is miconfigured`);
+                    throw new Error(`Limiter ${ type } is miconfigured`);
                 }
             });
 
             this._LIMITERS.set(type, new Limiter(this._redis, limiterOpts,
-                { prefix: `CPLimiter_${type}` }));
+                { prefix: `CPLimiter_${ type }` }));
         });
     }
 
@@ -48,24 +48,24 @@ class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
             limiter[fun](key, (err, isRateLimited) => {
                 if (err) {
                     hyper.logger.log('error/ratelimit', err);
-                    hyper.metrics.endTiming(`ratelimit.${fun}.err`, startTime);
+                    hyper.metrics.endTiming(`ratelimit.${ fun }.err`, startTime);
                     // In case we've got problems with limiting just allow everything
                     return resolve({ status: 200 });
                 }
 
                 if (isRateLimited) {
-                    hyper.metrics.endTiming(`ratelimit.${fun}.block`, startTime);
+                    hyper.metrics.endTiming(`ratelimit.${ fun }.block`, startTime);
                     return reject(new HTTPError({
                         status: 429,
                         body: {
                             type: 'rate_limit',
-                            message: `Message rejected by limiter ${type}`,
+                            message: `Message rejected by limiter ${ type }`,
                             key
                         }
                     }));
                 }
 
-                hyper.metrics.endTiming(`ratelimit.${fun}.allow`, startTime);
+                hyper.metrics.endTiming(`ratelimit.${ fun }.allow`, startTime);
                 return resolve({ status: 201 });
             });
         });

@@ -54,7 +54,7 @@ class OresProcessor {
             // https://phabricator.wikimedia.org/T210465#4797591
 
             const domainScores = res.body[newMessage.database];
-            const revScores = domainScores.scores[`${newMessage.rev_id}`];
+            const revScores = domainScores.scores[`${ newMessage.rev_id }`];
             Object.keys(revScores).forEach((modelName) => {
                 // The example schema for the score object:
                 //   {
@@ -88,7 +88,7 @@ class OresProcessor {
                     if (!Array.isArray(prediction)) {
                         prediction = [ prediction ];
                     }
-                    score[modelName].prediction = prediction.map(p => `${p}`);
+                    score[modelName].prediction = prediction.map(p => `${ p }`);
                     // Convert probabilities to an array of name-value pairs.
                     score[modelName].probability = Object.keys(originalScore.probability)
                         .reduce((obj, probName) => Object.assign(

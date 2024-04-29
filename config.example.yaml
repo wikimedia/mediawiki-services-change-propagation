@@ -28,7 +28,7 @@ services:
       # IP address to bind to, all IPs by default
       # interface: localhost # uncomment to only listen on localhost
       # allow cross-domain requests to the API (default '*')
-      cors: '*'
+      cors: "*"
       # to disable use:
       # cors: false
       # to restrict to a particular domain, use:
