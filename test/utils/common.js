@@ -119,7 +119,7 @@ const ajv = new Ajv({
         if (content.status !== 200) {
             throw new Error(`Failed to load meta schema at ${uri}`);
         }
-        const metaSchema = JSON.parse(content.body);
+        const metaSchema = content.body;
         // Need to reassign the ID cause we're using https in the meta-schema URIs
         metaSchema.$id = uri;
         return metaSchema;
