@@ -72,8 +72,7 @@ describe('JobQueue rules', function () {
         .post('/wiki/Special%3ARunSingleJob', sampleEvent)
         .twice() // We set 2 mocks here in order to check that after the test 1 is still pending
         .reply(200, {});
-        return P.each([ sampleEvent,  sampleEvent ], msg =>
-            producer.produce('test_dc.mediawiki.job.updateBetaFeaturesUserCounts', 0, msg.toBuffer()))
+        return P.each([ sampleEvent,  sampleEvent ], msg => producer.produce('test_dc.mediawiki.job.updateBetaFeaturesUserCounts', 0, msg.toBuffer()))
         .then(() => common.checkPendingMocks(service, 1))
         .finally(() => nock.cleanAll());
     });

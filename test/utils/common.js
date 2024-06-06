@@ -33,20 +33,14 @@ common.eventWithProperties = (stream, props) => {
     return event;
 };
 
-common.eventWithMessage = (message) => {
-    return common.eventWithProperties('simple_test_rule', { message: message });
-};
+common.eventWithMessage = (message) => common.eventWithProperties('simple_test_rule', { message: message });
 
-common.eventWithStream = (stream) => {
-    return common.eventWithProperties(stream, {});
-};
+common.eventWithStream = (stream) => common.eventWithProperties(stream, {});
 
-common.eventWithMessageAndRandom = (message, random) => {
-    return common.eventWithProperties('simple_test_rule', {
+common.eventWithMessageAndRandom = (message, random) => common.eventWithProperties('simple_test_rule', {
         message: message,
         random: random
     });
-};
 
 common.randomString = (len = 5) => {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -107,9 +101,7 @@ common.checkAPIDone = (api, maxAttempts = 19) => {
     return check();
 };
 
-common.checkPendingMocks = (api, num) => {
-    return P.delay(2000).then(() =>  assert.equal(api.pendingMocks().length, num));
-};
+common.checkPendingMocks = (api, num) => P.delay(2000).then(() =>  assert.equal(api.pendingMocks().length, num));
 
 const validatorCache = new Map();
 const ajv = new Ajv({

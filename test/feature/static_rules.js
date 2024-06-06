@@ -280,13 +280,11 @@ describe('Basic rule management', function () {
         .finally(() => nock.cleanAll());
     });
 
-    it('Should emit valid messages to error topic', () => {
-        return common.getKafkaFactory().createConsumer(
+    it('Should emit valid messages to error topic', () => common.getKafkaFactory().createConsumer(
             'changeprop-test-error-consumer',
             [ 'test_dc.changeprop.error' ])
         .then((errorConsumer) => {
-            setTimeout(() =>
-                producer.produce('test_dc.simple_test_rule', 0, Buffer.from('not_a_json_message')), 2000);
+            setTimeout(() => producer.produce('test_dc.simple_test_rule', 0, Buffer.from('not_a_json_message')), 2000);
 
             return common.fetchEventValidator('error', '0.0.3')
             .then((validate) => {
@@ -309,8 +307,7 @@ describe('Basic rule management', function () {
                 }
                 return check().finally(() => errorConsumer.disconnect());
             });
-        });
-    });
+        }));
 
     it('Sampling should only propagate a stable subset', () => {
         const service = nock('http://mock.com/')
