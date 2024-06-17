@@ -3,20 +3,20 @@
 const assert = require('assert');
 const Rule = require('../../lib/rule');
 
-describe('Rule', function () {
+describe('Rule', () => {
 
-    it('topic required', function () {
-        assert.throws(function () {
+    it('topic required', () => {
+        assert.throws(() => {
             const r = new Rule('rule'); // eslint-disable-line no-unused-vars
         }, Error, 'The rule should need to have a topic!');
     });
 
-    it('no-op rule', function () {
+    it('no-op rule', () => {
         const r = new Rule('noop_rule', { topic: 'nono' });
         assert.ok(r.noop, 'The rule should be a no-op!');
     });
 
-    it('simple rule - one request', function () {
+    it('simple rule - one request', () => {
         const r = new Rule('rule', {
             topic: 'nono',
             exec: { uri: 'a/b/c' }
@@ -24,7 +24,7 @@ describe('Rule', function () {
         assert.ok(Array.isArray(r.getHandler(0).exec), 'exec is expected to be an array!');
     });
 
-    it('simple rule - multiple requests', function () {
+    it('simple rule - multiple requests', () => {
         const r = new Rule('rule', {
             topic: 'nono',
             exec: [
@@ -35,7 +35,7 @@ describe('Rule', function () {
         assert.equal(r.getHandler(0).exec.length, 2, 'exec is expected to have 2 elements!');
     });
 
-    describe('Matching', function () {
+    describe('Matching', () => {
 
         const msg = {
             meta: {
@@ -46,7 +46,7 @@ describe('Rule', function () {
             string: 'oolala'
         };
 
-        it('all', function () {
+        it('all', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' }
@@ -54,7 +54,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), 0, 'Expected the rule to match all event messages!');
         });
 
-        it('simple value match', function () {
+        it('simple value match', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -63,7 +63,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('simple value mismatch', function () {
+        it('simple value mismatch', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -72,7 +72,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('regex match', function () {
+        it('regex match', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -81,7 +81,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('regex match with undefined', function () {
+        it('regex match with undefined', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -92,7 +92,7 @@ describe('Rule', function () {
             assert.equal(r.test(msgWithUndefined), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('regex mismatch', function () {
+        it('regex mismatch', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -101,7 +101,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('array match', function () {
+        it('array match', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -111,9 +111,9 @@ describe('Rule', function () {
             assert.equal(r.test(msgToMatch), 0, 'Expected the rule to match the given message!');
         });
 
-        it('malformed match', function () {
+        it('malformed match', () => {
             assert.throws(
-                function () {
+                () => {
                     // eslint-disable-next-line no-unused-vars
                     const r = new Rule('rule', {
                         topic: 'nono',
@@ -123,7 +123,7 @@ describe('Rule', function () {
             }, Error);
         });
 
-        it('match_not', function () {
+        it('match_not', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -154,7 +154,7 @@ describe('Rule', function () {
             }), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('matches match and match_not', function () {
+        it('matches match and match_not', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -164,7 +164,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), 0, 'Expected the rule to match the given message!');
         });
 
-        it('matches match but not match_not', function () {
+        it('matches match but not match_not', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -174,7 +174,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('matches match_not but not match', function () {
+        it('matches match_not but not match', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/b/c' },
@@ -184,7 +184,7 @@ describe('Rule', function () {
             assert.equal(r.test(msg), -1, 'Expected the rule not to match the given message!');
         });
 
-        it('matches match but is canary event and should_discard_canary_events is true', function () {
+        it('matches match but is canary event and should_discard_canary_events is true', () => {
             const canaryMessage = {
                 meta: {
                     uri: 'a/fake/uri/for/you',
@@ -204,7 +204,7 @@ describe('Rule', function () {
             assert.equal(r.test(canaryMessage), -1, 'Expected the rule not to match the given canary event.');
         });
 
-        it('matches match and is canary event and should_discard_canary_events is false', function () {
+        it('matches match and is canary event and should_discard_canary_events is false', () => {
             const canaryMessage = {
                 meta: {
                     uri: 'a/fake/uri/for/you',
@@ -224,7 +224,7 @@ describe('Rule', function () {
             assert.equal(r.test(canaryMessage), 0, 'Expected the to match the given canary event.');
         });
 
-        it('expansion', function () {
+        it('expansion', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/{match.meta.uri[1]}/c' },
@@ -234,7 +234,7 @@ describe('Rule', function () {
             assert.deepEqual(exp.meta.uri, /\/fake\/([^/]+)/.exec(msg.meta.uri));
         });
 
-        it('expansion with named groups', function () {
+        it('expansion with named groups', () => {
             const r = new Rule('rule', {
                 topic: 'nono',
                 exec: { uri: 'a/{match.meta.uri.element}/c' },
@@ -244,7 +244,7 @@ describe('Rule', function () {
             assert.deepEqual(exp.meta.uri, { element: 'uri' });
         });
 
-        it('checks for named and unnamed groups mixing', function () {
+        it('checks for named and unnamed groups mixing', () => {
             try {
                 // eslint-disable-next-line no-unused-vars
                 const r = new Rule('rule', {

@@ -21,8 +21,7 @@ describe('update rules', function () {
         // Setting up might take some tome, so disable the timeout
         this.timeout(50000);
         return changeProp.start()
-        .then(() => {
-            return preq.post({
+        .then(() => preq.post({
                 uri: 'https://en.wikipedia.org/w/api.php',
                 body: {
                     formatversion: '2',
@@ -31,8 +30,7 @@ describe('update rules', function () {
                     meta: 'siteinfo',
                     siprop: 'general|namespaces|namespacealiases|specialpagealiases'
                 }
-            });
-        })
+            }))
         .then((res) => {
             siteInfoResponse = res.body;
         })
@@ -75,7 +73,7 @@ describe('update rules', function () {
     function testPurgeCacheOnResourceChange(uriBefore, uriAfter, domain, tags, testString, done) {
         const udpServer = dgram.createSocket('udp4');
         let closed = false;
-        udpServer.on('message', function (msg) {
+        udpServer.on('message', (msg) => {
             try {
                 msg = msg.slice(22, 22 + msg.readInt16BE(20)).toString();
                 if (msg.includes(testString)) {
@@ -107,11 +105,9 @@ describe('update rules', function () {
         });
     }
 
-    it('Should update summary endpoint', () =>
-        summaryEndpointTest('resource_change'));
+    it('Should update summary endpoint', () => summaryEndpointTest('resource_change'));
 
-    it('Should update summary endpoint, transcludes topic', () =>
-        summaryEndpointTest('change-prop.transcludes.resource-change'));
+    it('Should update summary endpoint, transcludes topic', () => summaryEndpointTest('change-prop.transcludes.resource-change'));
 
     it('Should update summary endpoint on page images change', () => {
         const SAMPLE_EVENT = common.events.pagePropertiesChange('https://en.wikipedia.org/wiki/Some_Page');
@@ -382,8 +378,7 @@ describe('update rules', function () {
         .finally(() => nock.cleanAll());
     });
 
-    it('Should update ORES on revision-create', () => {
-        return common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
+    it('Should update ORES on revision-create', () => common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
@@ -410,7 +405,7 @@ describe('update rules', function () {
                 }
             });
             const eventBusService = nock('https://eventgate.stubfortests.org')
-            .post('/v1/events', function (body) {
+            .post('/v1/events', (body) => {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;
                 }
@@ -422,11 +417,9 @@ describe('update rules', function () {
             .then(() => common.checkAPIDone(oresService))
             .then(() => common.checkAPIDone(eventBusService))
             .finally(() => nock.cleanAll());
-        });
-    });
+        }));
 
-    it('Should update ORES on revision-create, error', () => {
-        return common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
+    it('Should update ORES on revision-create, error', () => common.fetchEventValidator('mediawiki/revision/score', '2.0.0')
         .then((validate) => {
             const oresService = nock('https://ores.wikimedia.org')
             .post('/v3/precache')
@@ -450,7 +443,7 @@ describe('update rules', function () {
                 }
             });
             const eventBusService = nock('https://eventgate.stubfortests.org')
-            .post('/v1/events', function (body) {
+            .post('/v1/events', (body) => {
                 if (!body || !Array.isArray(body) || !body.length) {
                     return false;
                 }
@@ -462,8 +455,7 @@ describe('update rules', function () {
             .then(() => common.checkAPIDone(oresService))
             .then(() => common.checkAPIDone(eventBusService))
             .finally(() => nock.cleanAll());
-        });
-    });
+        }));
 
     const wikidataDescriptionTest = (stream, eventFactory, eventComment) => {
         const SAMPLE_EVENT = eventFactory('https://www.wikidata.org/wiki/Q1');
@@ -517,22 +509,19 @@ describe('update rules', function () {
         .finally(() => nock.cleanAll());
     };
 
-    it('Should update RESTBase summary and mobile-sections on wikidata description change', () =>
-        wikidataDescriptionTest(
+    it('Should update RESTBase summary and mobile-sections on wikidata description change', () => wikidataDescriptionTest(
             'mediawiki.revision-create',
             common.events.revisionCreate.bind(common.events),
             '/* wbeditentity-update:0| */ add [it] label'
         ));
 
-    it('Should update RESTBase summary and mobile-sections on wikidata description revert', () =>
-        wikidataDescriptionTest(
+    it('Should update RESTBase summary and mobile-sections on wikidata description revert', () => wikidataDescriptionTest(
             'mediawiki.revision-create',
             common.events.revisionCreate.bind(common.events),
             '/* undo */ Undo revision 440223057 by Mhollo'
         ));
 
-    it('Should update RESTBase summary and mobile-sections on wikidata undelete', () =>
-        wikidataDescriptionTest(
+    it('Should update RESTBase summary and mobile-sections on wikidata undelete', () => wikidataDescriptionTest(
             'mediawiki.page-undelete',
             common.events.pageUndelete.bind(common.events),
             '/* undo */ Undo revision 440223057 by Mhollo'
@@ -798,27 +787,23 @@ describe('update rules', function () {
     it('Should process backlinks, on delete', () => backlinksTest('On_Delete', 'mediawiki.page-delete'));
     it('Should process backlinks, on undelete', () => backlinksTest('On_Undelete', 'mediawiki.page-undelete'));
 
-    it('Should purge caches on resource_change coming from RESTBase', (done) => {
-        return testPurgeCacheOnResourceChange(
+    it('Should purge caches on resource_change coming from RESTBase', (done) => testPurgeCacheOnResourceChange(
             'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536',
             'http://en.wikipedia.beta.wmflabs.org/api/rest_v1/page/html/User%3APchelolo%2FTest/331536',
             'en.wikipedia.beta.wmflabs.org',
             ['restbase'],
             'User%3APchelolo%2FTest',
             done
-        );
-    });
+        ));
 
-    it('Should purge caches on resource_change coming from Tilerator', (done) => {
-        return testPurgeCacheOnResourceChange(
+    it('Should purge caches on resource_change coming from Tilerator', (done) => testPurgeCacheOnResourceChange(
             'https://maps-beta.wmflabs.org/osm-intl/12/2074/1405.png',
             'http://maps-beta.wmflabs.org/osm-intl/12/2074/1405.png',
             'maps-beta.wmflabs.org',
             ['tilerator'],
             'osm-intl',
             done
-        );
-    });
+        ));
 
     after(() => changeProp.stop());
 });

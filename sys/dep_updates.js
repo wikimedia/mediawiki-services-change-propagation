@@ -66,9 +66,7 @@ function createTranscludeInTemplate(options) {
         getContinueToken: res => res.body.continue && res.body.continue.ticontinue,
         leafStreamName: 'change-prop.transcludes.resource-change',
         resourceChangeTags: [ 'transcludes', 'templates' ],
-        extractResults: (res) => {
-            return res.body.query.pages[Object.keys(res.body.query.pages)[0]].transcludedin;
-        }
+        extractResults: (res) => res.body.query.pages[Object.keys(res.body.query.pages)[0]].transcludedin
     };
 }
 
@@ -191,10 +189,8 @@ class DependencyProcessor {
         };
         const originalEvent = req.body.original_event || req.body;
         return this._getSiteInfo(hyper, req.body)
-        .then((siteInfo) => {
-            return this._fetchAndProcessBatch(hyper, this.backLinksRequest,
-                context, siteInfo, originalEvent);
-        });
+        .then((siteInfo) => this._fetchAndProcessBatch(hyper, this.backLinksRequest,
+                context, siteInfo, originalEvent));
     }
 
     processTranscludes(hyper, req) {
@@ -244,12 +240,10 @@ class DependencyProcessor {
     _fetchAndProcessBatch(hyper, requestTemplate, context, siteInfo, originalEvent) {
         return hyper.post(requestTemplate.template.expand(context))
         .then((res) => {
-            const titles = (requestTemplate.extractResults(res) || []).map((item) => {
-                return {
+            const titles = (requestTemplate.extractResults(res) || []).map((item) => ({
                     title: Title.newFromText(item.title, siteInfo).getPrefixedDBKey(),
                     domain: originalEvent.meta.domain
-                };
-            });
+                }));
             if (!titles.length) {
                 // the batch is complete or the list of transcluded titles is empty
                 return { status: 200 };
