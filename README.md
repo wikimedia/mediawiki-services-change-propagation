@@ -32,7 +32,7 @@ Each rule is executed by a single worker, but internal load-balancing mechanism 
 rules to workers equally.
 
 The rule can contain the following properties:
-- **topic** A name of the topic to subscribe to.
+- **topic** or **topics** The name of a single topic or a list of topics to which to subscribe.
 - **match** An optional predicate for a message. The rule is executed only if all of the `match`
 properties were satisfied by the message. Properties could be nested objects, constants
 or a regex. Regex could contain capture groups and captured values will later be accessible
@@ -47,6 +47,11 @@ of logical OR - if any of the array items match, the `match_not` matches.
 The template follows [request templating syntax](https://github.com/wikimedia/swagger-router#request-templating).
 The template is evaluated with a `context` that has `message` global property with an original message,
 and `match` property with values extracted by the match.
+- **consumer** A mapping from consumer property name to value for the Kafka consumer associated with this
+rule. These properties _override_ the values specified in the top-level `consumer` property of the `kafka`
+module config. See the
+[librdkafka](https://github.com/confluentinc/librdkafka/blob/master/CONFIGURATION.md)
+documentation for available properties.
 
 Here's an example of the rule, which would match all `resource_change` messages, emitted by `RESTBase`,
 and purge varnish caches for the resources by issuing an HTTP request to a special internal module, that would
