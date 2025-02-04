@@ -34,6 +34,8 @@ test_dc.change-prop.wikidata.resource-change
 test_dc.changeprop.retry.change-prop.wikidata.resource-change
 test_dc.mediawiki.job.updateBetaFeaturesUserCounts
 test_dc.cpjobqueue.retry.mediawiki.job.updateBetaFeaturesUserCounts
+test_dc.mediawiki.job.cdnPurge
+test_dc.cpjobqueue.retry.mediawiki.job.cdnPurge
 test_dc.mediawiki.job.htmlCacheUpdate
 test_dc.cpjobqueue.retry.mediawiki.job.htmlCacheUpdate
 test_dc.cpjobqueue.partitioned.mediawiki.job.htmlCacheUpdate 8
