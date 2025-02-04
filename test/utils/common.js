@@ -13,7 +13,7 @@ const mockRequire  = require('mock-require');
 const common = {};
 
 common.topics_created = false;
-common.REQUEST_CHECK_DELAY = 3000;
+common.REQUEST_CHECK_DELAY = 5000;
 
 common.SAMPLE_REQUEST_ID = uuidv1();
 
