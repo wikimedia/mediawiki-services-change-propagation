@@ -34,7 +34,7 @@ describe('update rules', function () {
         .then((res) => {
             siteInfoResponse = res.body;
         })
-        .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
+        .then(() => common.getKafkaFactory({ producer: { 'queue.buffering.max.ms': 1 } }).createProducer({ log: console.log.bind(console) }))
         .then((result) => {
  producer = result;
 });

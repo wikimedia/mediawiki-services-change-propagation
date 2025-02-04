@@ -20,7 +20,7 @@ describe('Basic rule management', function () {
         // Setting up might take some time, so increase the timeout
         this.timeout(50000);
         return changeProp.start()
-        .then(() => common.getKafkaFactory().createProducer({ log: console.log.bind(console) }))
+        .then(() => common.getKafkaFactory({ producer: { 'queue.buffering.max.ms': 1 } }).createProducer({ log: console.log.bind(console) }))
         .then((result) => {
             producer = result;
         });
