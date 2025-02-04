@@ -152,7 +152,9 @@ describe('Basic rule management', function () {
 
         return common.getKafkaFactory().createConsumer(
             'changeprop-test-consumer-valid-retry',
-            [ 'test_dc.changeprop.retry.simple_test_rule' ])
+            [ 'test_dc.changeprop.retry.simple_test_rule' ],
+            null,
+            { log: console.log.bind(console) })
         .then((retryConsumer) => {
             setTimeout(() => producer.produce('test_dc.simple_test_rule', 0,
                 Buffer.from(JSON.stringify(common.eventWithMessageAndRandom('test', random)))), 2000);
@@ -282,7 +284,9 @@ describe('Basic rule management', function () {
 
     it('Should emit valid messages to error topic', () => common.getKafkaFactory().createConsumer(
             'changeprop-test-error-consumer',
-            [ 'test_dc.changeprop.error' ])
+            [ 'test_dc.changeprop.error' ],
+             null,
+            { log: console.log.bind(console) })
         .then((errorConsumer) => {
             setTimeout(() => producer.produce('test_dc.simple_test_rule', 0, Buffer.from('not_a_json_message')), 2000);
 
