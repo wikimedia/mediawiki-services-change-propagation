@@ -1,6 +1,6 @@
 {
 	"name": "change-propagation",
-	"version": "0.12.0",
+	"version": "0.13.0",
 	"description": "Listens to events from Kafka and delivers them",
 	"main": "server.js",
 	"repository": {
@@ -46,7 +46,7 @@
 		"hyperswitch": "^0.13.0",
 		"mediawiki-title": "^0.7.2",
 		"murmurhash": "^1.0.0",
-		"node-rdkafka": "2.17.0",
+		"node-rdkafka": "3.0.0",
 		"ratelimit.js": "^1.8.0",
 		"redis": "^3.0.2",
 		"service-runner": "^2.7.8",
@@ -67,6 +67,6 @@
 		"redis-mock": "^0.56.3"
 	},
 	"engines": {
-		"node": ">=18"
+		"node": ">=20"
 	}
 }

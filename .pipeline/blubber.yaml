@@ -1,6 +1,6 @@
 # syntax=docker-registry.wikimedia.org/repos/releng/blubber/buildkit:v0.23.0
 version: v4
-base: docker-registry.wikimedia.org/nodejs18-slim
+base: docker-registry.wikimedia.org/nodejs20-slim
 lives:
   in: /srv/service
 runs:
