@@ -35,6 +35,7 @@
 		"jsdoc/no-undefined-types": "off",
 		"no-shadow": "warn",
 		"es-x/no-array-prototype-with": "warn",
-		"implicit-arrow-linebreak": "warn"
+		"implicit-arrow-linebreak": "warn",
+		"dot-location": "off"
 	}
 }

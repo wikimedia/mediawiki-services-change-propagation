@@ -38,7 +38,9 @@ class Kafka {
     }
 
     _subscribeRules(hyper, rules) {
-        return P.map(Object.keys(rules), ruleName => this.subscriber.subscribe(hyper, ruleName, rules[ruleName]))
+        return P.map(
+            Object.keys(rules),
+            ruleName => this.subscriber.subscribe(hyper, ruleName, rules[ruleName]))
         .thenReturn({ status: 201 });
     }
 
