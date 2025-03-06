@@ -10,7 +10,7 @@ apt: { packages: [wmf-certificates] }
 variants:
   build:
     apt: { packages: [build-essential, python3-dev, libssl-dev] }
-    base: docker-registry.wikimedia.org/nodejs18-devel
+    base: docker-registry.wikimedia.org/nodejs20-slim
     copies: [local]
     node: { requirements: [package.json]}
     runs: { environment: { LINK: g++ }}
