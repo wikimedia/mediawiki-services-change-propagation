@@ -66,7 +66,8 @@ function createTranscludeInTemplate(options) {
         getContinueToken: res => res.body.continue && res.body.continue.ticontinue,
         leafStreamName: 'change-prop.transcludes.resource-change',
         resourceChangeTags: [ 'transcludes', 'templates' ],
-        extractResults: (res) => res.body.query.pages[Object.keys(res.body.query.pages)[0]].transcludedin
+        extractResults: (res) => res.body.query.
+            pages[Object.keys(res.body.query.pages)[0]].transcludedin
     };
 }
 
