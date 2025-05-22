@@ -1,7 +1,6 @@
 'use strict';
 
 const Limiter = require('ratelimit.js').RateLimit;
-const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
 const mixins = require('../lib/mixins');
@@ -44,7 +43,7 @@ class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
 
         const startTime = Date.now();
 
-        return new P((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             limiter[fun](key, (err, isRateLimited) => {
                 if (err) {
                     hyper.logger.log('error/ratelimit', err);
