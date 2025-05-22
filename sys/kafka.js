@@ -4,7 +4,6 @@
  * restbase-mod-queue-kafka main entry point
  */
 
-const P = require('bluebird');
 const HyperSwitch = require('hyperswitch');
 const HTTPError = HyperSwitch.HTTPError;
 const uuidv1 = require('uuid').v1;
@@ -22,33 +21,35 @@ class Kafka {
         this.subscriber = new RuleSubscriber(options, this.kafkaFactory);
     }
 
-    setup(hyper) {
-        return this.kafkaFactory.createGuaranteedProducer(hyper.logger)
-        .then((producer) => {
-            this.producer = producer;
-            this._connected = true;
-            HyperSwitch.lifecycle.once('close', () => {
-                this._connected = false;
-                this.subscriber.unsubscribeAll();
-                this.producer.disconnect();
-            });
-            return this._subscribeRules(hyper, this.staticRules);
-        })
-        .tap(() => hyper.logger.log('info/change-prop/init', 'Kafka Queue module initialised'));
+    async setup(hyper) {
+        this.producer = await this.kafkaFactory.createGuaranteedProducer(hyper.logger);
+        this._connected = true;
+
+        HyperSwitch.lifecycle.once('close', () => {
+            this._connected = false;
+            this.subscriber.unsubscribeAll();
+            this.producer.disconnect();
+        });
+
+        const result = await this._subscribeRules(hyper, this.staticRules);
+        hyper.logger.log('info/change-prop/init', 'Kafka Queue module initialised');
+        return result;
     }
 
-    _subscribeRules(hyper, rules) {
-        return P.map(
-            Object.keys(rules),
-            ruleName => this.subscriber.subscribe(hyper, ruleName, rules[ruleName]))
-        .thenReturn({ status: 201 });
+    async _subscribeRules(hyper, rules) {
+        await Promise.all(
+            Object.keys(rules).map(
+                ruleName => this.subscriber.subscribe(hyper, ruleName, rules[ruleName])
+            )
+        );
+        return { status: 201 };
     }
 
     subscribe(hyper, req) {
         return this._subscribeRules(hyper, req.body);
     }
 
-    produce(hyper, req) {
+    async produce(hyper, req) {
         if (this.options.test_mode) {
             hyper.logger.log('trace/produce', 'Running in TEST MODE; Production disabled');
             return { status: 201 };
@@ -77,7 +78,7 @@ class Kafka {
             message.meta.dt = message.meta.dt || now.toISOString();
             message.meta.request_id = message.meta.request_id || utils.requestId();
         });
-        return P.all(messages.map((message) => {
+        await Promise.all(messages.map((message) => {
             if (!message.meta.stream) {
                 throw new HTTPError({
                     status: 400,
@@ -93,8 +94,8 @@ class Kafka {
             return this.producer.produce(`${ this.kafkaFactory.produceDC }.${ message.meta.stream }`,
                 partition,
                 Buffer.from(JSON.stringify(message)));
-        }))
-        .thenReturn({ status: 201 });
+        }));
+        return { status: 201 };
     }
 }
 
