@@ -1,6 +1,5 @@
 'use strict';
 
-const P = require('bluebird');
 const uuidv1 = require('uuid').v1;
 
 class OresProcessor {
@@ -14,16 +13,17 @@ class OresProcessor {
         }
     }
 
-    process(hyper, req) {
+    async process(hyper, req) {
         const message = req.body;
-        return P.all(this._options.ores_precache_uris.map(uri => hyper.post({
+        const preCache = await Promise.all(this._options.ores_precache_uris.map(uri => hyper.post({
             uri,
             headers: {
                 'content-type': 'application/json'
             },
             body: message
-        })))
-        .spread((res) => {
+        })));
+
+        const responses = preCache.map((res) => {
             if (!req.query.postevent || !res.body) {
                 return res;
             }
@@ -108,6 +108,8 @@ class OresProcessor {
                 body: [ newMessage ]
             });
         });
+
+        return Promise.all(responses);
     }
 }
 
