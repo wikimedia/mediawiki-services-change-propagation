@@ -47,13 +47,13 @@ class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
             limiter[fun](key, (err, isRateLimited) => {
                 if (err) {
                     hyper.logger.log('error/ratelimit', err);
-                    hyper.metrics.endTiming(`ratelimit.${ fun }.err`, startTime);
+                    hyper.metrics.endTiming(`ratelimit_${ fun }_err`, startTime);
                     // In case we've got problems with limiting just allow everything
                     return resolve({ status: 200 });
                 }
 
                 if (isRateLimited) {
-                    hyper.metrics.endTiming(`ratelimit.${ fun }.block`, startTime);
+                    hyper.metrics.endTiming(`ratelimit_${ fun }_block`, startTime);
                     return reject(new HTTPError({
                         status: 429,
                         body: {
@@ -64,7 +64,7 @@ class RateLimiter extends mixins.mix(Object).with(mixins.Redis) {
                     }));
                 }
 
-                hyper.metrics.endTiming(`ratelimit.${ fun }.allow`, startTime);
+                hyper.metrics.endTiming(`ratelimit_${ fun }_allow`, startTime);
                 return resolve({ status: 201 });
             });
         });
