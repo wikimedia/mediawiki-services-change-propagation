@@ -23,6 +23,9 @@ describe('update rules', function () {
         return changeProp.start()
         .then(() => preq.post({
                 uri: 'https://en.wikipedia.org/w/api.php',
+                headers: {
+                    'user-agent': 'ChangePropagation-tests (https://gerrit.wikimedia.org/g/mediawiki/services/change-propagation)'
+                },
                 body: {
                     formatversion: '2',
                     format: 'json',
