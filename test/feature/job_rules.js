@@ -149,7 +149,7 @@ describe('JobQueue rules', function () {
         .finally(() => nock.cleanAll());
     });
 
-    it('Should support delayed jobs with re-enqueue', () => {
+    it('Should support delayed jobs with re-enqueue', function () {
         this.timeout(20000);
         const sampleEvent = common.jobs.cdnPurge;
         sampleEvent.delay_until = `${ new Date(Date.parse(sampleEvent.delay_until) + 10000).toISOString() }`;
